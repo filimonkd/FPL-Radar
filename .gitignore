@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# MongoDB data, dumps and backups
+data/
+dump/
+dumps/
+backups/
+*.archive
+*.bson
+*.gz
+mongo-data/
+
+# Real FPL data snapshots
+fpl-data/
+**/fixtures/real/
+*.fpl.json
+
+# Build output
+dist/
+build/
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
