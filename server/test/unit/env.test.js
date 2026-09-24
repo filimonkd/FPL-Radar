@@ -44,3 +44,14 @@ test('lists every invalid variable at once', () => {
     },
   );
 });
+
+test('malformed boolean URI options are reported with the exact value', () => {
+  for (const bad of ['true"', 'true`', 'True', 'true;', 'true MONGODB_DB=x']) {
+    assert.throws(
+      () => parseEnv({ ...valid, MONGODB_URI: `mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=${bad}` }),
+      (err) => err.problems.some((p) => p.includes('directConnection') && p.includes(JSON.stringify(bad))),
+      bad,
+    );
+  }
+  assert.doesNotThrow(() => parseEnv({ ...valid, MONGODB_URI: 'mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=false&retryWrites=true' }));
+});
