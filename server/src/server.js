@@ -5,7 +5,15 @@ import { version } from './version.js';
 
 const config = loadEnv();
 
-await connectDb(config.MONGODB_URI, config.MONGODB_DB);
+try {
+  await connectDb(config.MONGODB_URI, config.MONGODB_DB);
+} catch (err) {
+  console.error(
+    `Cannot connect to MongoDB at ${redactUri(config.MONGODB_URI)}: ${err.cause?.message ?? err.message}\n` +
+      '  Is the database running? Start it with `npm run db:up` (Docker must be running), then check with `npm run db:ping`.',
+  );
+  process.exit(1);
+}
 console.log(`MongoDB connected (db: ${config.MONGODB_DB})`);
 
 const app = createApp({ config, version, getDbStatus });
@@ -25,3 +33,7 @@ async function shutdown(signal) {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+
+function redactUri(uri) {
+  return uri.replace(/\/\/[^@/]+@/, '//***@');
+}

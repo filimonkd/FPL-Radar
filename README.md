@@ -137,7 +137,7 @@ npm run test:integration # server/test/integration (none yet; MongoMemoryReplSet
 |---------------|---------------|-----------------------------------------------------------|
 | `NODE_ENV`    | `development` | `development` \| `test` \| `production`                   |
 | `PORT`        | `4000`        | API port                                                  |
-| `MONGODB_URI` | required      | `mongodb://localhost:27017/?replicaSet=rs0&directConnection=true` |
+| `MONGODB_URI` | required      | `mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=true` (use `127.0.0.1`, not `localhost`: on Windows `localhost` resolves to IPv6 `::1`, where the container isn't published) |
 | `MONGODB_DB`  | required      | `fpl_rival_dev` locally                                   |
 | `JWT_SECRET`  | required      | any non-empty value locally                               |
 | `FPL_API_BASE_URL` | `https://fantasy.premierleague.com/api` | http(s) URL; trailing slash trimmed |
