@@ -50,18 +50,19 @@ test('bootstrap samples are trimmed to 20 elements', () => {
 
 test('classifyResponse distinguishes network, blocked, updating, http and json', () => {
   assert.equal(classifyResponse({ error: new Error('x') }), 'NETWORK');
-  assert.equal(classifyResponse({ status: 429 }), 'BLOCKED');
+  assert.equal(classifyResponse({ status: 429, text: '' }), 'HTTP'); // plain upstream rate limit
+  assert.equal(classifyResponse({ status: 429, text: '', cfMitigated: 'challenge' }), 'BLOCKED');
   assert.equal(classifyResponse({ status: 403, text: '<title>Just a moment...</title>' }), 'BLOCKED');
   assert.equal(classifyResponse({ status: 503, text: 'The game is being updated.' }), 'UPDATING');
   assert.equal(classifyResponse({ status: 404, contentType: 'application/json', text: '{}', json: {} }), 'HTTP');
   assert.equal(classifyResponse({ status: 200, contentType: 'text/html', text: '<html>' }), 'INVALID_JSON');
   assert.equal(classifyResponse({ status: 200, contentType: 'application/json', text: '{}', json: {} }), 'OK');
-  // Egress proxy denial and public-endpoint 401/403 are blocked, not "HTTP".
+  // Only concrete denial indicators mean BLOCKED.
   assert.equal(classifyResponse({ status: 403, contentType: 'text/plain', text: 'Host not in allowlist: fantasy.premierleague.com.' }), 'BLOCKED');
   assert.equal(classifyResponse({ status: 403, text: 'nope', denyReason: 'host_not_allowed' }), 'BLOCKED');
-  assert.equal(classifyResponse({ status: 403, contentType: 'application/json', text: '{}', json: {} }), 'BLOCKED');
-  // ...but on standings a JSON 403 is a real answer, left for classifyLeagueAccess.
-  assert.equal(classifyResponse({ status: 403, contentType: 'application/json', text: '{}', json: {}, mayRequireAuth: true }), 'HTTP');
+  // Arbitrary upstream 401/403 stay HTTP (e.g. a private league's real answer).
+  assert.equal(classifyResponse({ status: 403, contentType: 'application/json', text: '{}', json: {} }), 'HTTP');
+  assert.equal(classifyResponse({ status: 401, contentType: 'text/html', text: '<html>Sign in</html>' }), 'HTTP');
 });
 
 test('classifyLeagueAccess follows v0.2 §10', () => {

@@ -112,8 +112,8 @@ npm run fpl:smoke -- --league <leagueA> --league <leagueB> --entry <hitTaker> [-
 - Pass both private leagues, and at least one entry that has taken a transfer hit (`event_transfers_cost > 0`) this season, so the points semantics can be proven.
 - `--gw` defaults to the latest gameweek with `data_checked = true`.
 - Writes `server/fpl-contract/<season>/smoke-report.md` every time. The anonymized `*.sample.json` and `*.shape.json` files are written on the first recording, or with `--update-baseline`. Samples are only ever written from real 2xx JSON responses, and the run refuses to write them if any real name or ID survived anonymization. The report only uses aliases (`E1`, `L1`, ...).
-- Exit codes: `0` all pass · `1` schema break · `2` an assumption failed or is unverified · `3` network or blocked.
-- `V3` (sum of engine effective multipliers × points = gross) stays UNVERIFIED until Step 3 builds the engine. `P5` records the same identity using FPL's own multipliers.
+- Exit codes: `0` all pass · `1` schema break · `2` an assumption failed or is unverified · `3` network or blocked. BLOCKED needs a concrete denial indicator: an egress proxy's `x-deny-reason` or "host not in allowlist", Cloudflare's `cf-mitigated` header, or a recognized challenge page. Any other 401/403/429 is reported as FPL's actual HTTP answer.
+- `V3` (sum of engine effective multipliers × points = gross) is reported as `DEFERRED_TO_STEP_3` and doesn't affect the exit code. `P5` records the same identity using FPL's own multipliers.
 - Private league standings needing a login are classified `AUTH_REQUIRED`, and the group must use manual entry IDs. The smoke test never logs in to FPL.
 
 ## Test

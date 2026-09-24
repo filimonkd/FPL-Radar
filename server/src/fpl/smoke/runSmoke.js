@@ -25,6 +25,8 @@ export const EXIT = Object.freeze({ PASS: 0, SCHEMA_BREAK: 1, ASSUMPTION_FAILED:
 const PASS = 'PASS';
 const FAIL = 'FAIL';
 const UNVERIFIED = 'UNVERIFIED';
+// Checks that need Step 3 engine code; recorded, but never affect the exit code.
+const DEFERRED = 'DEFERRED_TO_STEP_3';
 
 const NONEXISTENT_ENTRY_ID = 999_999_999;
 
@@ -57,7 +59,7 @@ export async function runSmoke({
   const check = (id, endpoint, title, status, detail) => run.checks.push({ id, endpoint, title, status, detail });
   let first = true;
 
-  async function request(endpoint, path, alias, { mayRequireAuth = false } = {}) {
+  async function request(endpoint, path, alias) {
     if (!first) await sleep(delayMs);
     first = false;
     const url = `${baseUrl}${path}`;
@@ -97,7 +99,8 @@ export async function runSmoke({
       durationMs: Math.round(performance.now() - started),
     });
     meta.denyReason = res.headers.get('x-deny-reason') ?? undefined;
-    meta.classification = classifyResponse({ status: res.status, contentType, text, json, denyReason: meta.denyReason, mayRequireAuth });
+    meta.cfMitigated = res.headers.get('cf-mitigated') ?? undefined;
+    meta.classification = classifyResponse({ status: res.status, contentType, text, json, denyReason: meta.denyReason, cfMitigated: meta.cfMitigated });
     meta.gameUpdating = meta.classification === 'UPDATING';
 
     if (meta.classification === 'OK') {
@@ -224,7 +227,7 @@ export async function runSmoke({
     const pages = [];
     let page = 1;
     let res = await request('leagues-classic-standings', `/leagues-classic/${leagueId}/standings/?page_standings=1`,
-      `/leagues-classic/{${alias}}/standings/?page_standings=1`, { mayRequireAuth: true });
+      `/leagues-classic/{${alias}}/standings/?page_standings=1`);
     const access = classifyLeagueAccess(res);
     check('L1', 'leagues-classic-standings', `${alias}: anonymous access classification`,
       access === 'OK' ? PASS : isUnreachable(access) ? UNVERIFIED : FAIL,
@@ -358,7 +361,7 @@ export async function runSmoke({
   const nextEvent = bootstrap?.events?.find((e) => e.is_next === true);
   if (entries.length && nextEvent && new Date(nextEvent.deadline_time) > now()) {
     const alias = ids.entryAlias(entries[0]);
-    const n = await request('entry-picks', `/entry/${entries[0]}/event/${nextEvent.id}/picks/`, `/entry/{${alias}}/event/${nextEvent.id}/picks/ (before deadline)`, { mayRequireAuth: true });
+    const n = await request('entry-picks', `/entry/${entries[0]}/event/${nextEvent.id}/picks/`, `/entry/{${alias}}/event/${nextEvent.id}/picks/ (before deadline)`);
     check('P6', 'entry-picks', `Next GW picks before deadline (GW${nextEvent.id})`, isUnreachable(n.classification) ? UNVERIFIED : PASS,
       `status=${n.status ?? n.classification}; body=${n.json ? `keys: ${Object.keys(n.json).join(', ')}` : (n.text ?? '').slice(0, 120)}`);
   } else if (entries.length) {
@@ -384,8 +387,8 @@ export async function runSmoke({
           `Σ=${sum}, entry_history.points=${reported}; active_chip=${JSON.stringify(body.active_chip)}, auto-subs=${body.automatic_subs?.length ?? 0}; ` +
             `captain multiplier=${body.picks.find((pk) => pk.is_captain)?.multiplier}, bench multipliers=${body.picks.filter((pk) => pk.position > 11).map((pk) => pk.multiplier).join('/')}`);
       }
-      check('V3', 'event-live', 'Σ engine effective multiplier × total_points = gross', UNVERIFIED,
-        'needs deriveEffectiveSquad (Step 3); P5 records the same identity using FPL multipliers');
+      check('V3', 'event-live', 'Σ engine effective multiplier × total_points = gross', DEFERRED,
+        'needs deriveEffectiveSquad (Step 3); does not affect the exit code. P5 records the same identity using FPL multipliers');
       run.liveKeepIds = liveNeeded;
     } else {
       check('V1', 'event-live', 'live fields', UNVERIFIED, `request ${describeFailure(live)}`);
@@ -425,7 +428,11 @@ function verdict(run) {
       exitReason: `${failed.length} FAIL, ${unverified.length} UNVERIFIED (every assumption must be decided before M2)`,
     };
   }
-  return { exitCode: EXIT.PASS, exitReason: 'all checks passed' };
+  const deferred = run.checks.filter((c) => c.status === DEFERRED).length;
+  return {
+    exitCode: EXIT.PASS,
+    exitReason: `all Step 2 checks passed${deferred ? ` (${deferred} deferred to Step 3, not counted)` : ''}`,
+  };
 }
 
 function describeFailure(res) {

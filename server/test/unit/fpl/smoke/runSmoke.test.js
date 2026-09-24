@@ -21,12 +21,16 @@ function smoke(fetch, extra = {}) {
 }
 const byId = (run, id) => run.checks.filter((c) => c.id === id);
 
-test('consistent world: every check passes except the Step 3-dependent V3 (exit 2)', async () => {
+test('consistent world: all Step 2 checks pass, V3 is deferred, exit 0', async () => {
   const run = await smoke(worldFetch(world({ now: NOW })));
   const notPass = run.checks.filter((c) => c.status !== 'PASS' && c.id !== 'V3');
   assert.deepEqual(notPass, []);
-  assert.equal(byId(run, 'V3')[0].status, 'UNVERIFIED'); // engine-dependent, Step 3
-  assert.equal(run.exitCode, EXIT.ASSUMPTION_FAILED); // V3 keeps the run from a clean 0
+  assert.equal(byId(run, 'V3')[0].status, 'DEFERRED_TO_STEP_3');
+  assert.equal(run.exitCode, EXIT.PASS);
+  assert.match(run.exitReason, /1 deferred to Step 3/);
+  const md = renderReport(run, {});
+  assert.match(md, /\| V3 \|.*\*\*DEFERRED_TO_STEP_3\*\*/);
+  assert.match(md, /1 DEFERRED_TO_STEP_3/);
   assert.equal(run.gw, GW);
   assert.equal(run.gwSource, 'latest data_checked event');
   assert.equal(run.season, '2026-27');
@@ -59,6 +63,16 @@ test('egress proxy denial on every request → exit 3, nothing classified as AUT
   assert.equal(run.exitCode, EXIT.NETWORK_OR_BLOCKED);
   assert.ok(run.requests.every((r) => r.classification === 'BLOCKED'));
   assert.notEqual(run.checks.find((c) => c.id === 'L1').status, 'FAIL');
+});
+
+test('an arbitrary upstream 403 is reported as HTTP, not BLOCKED', async () => {
+  const forbidden = new Response('{"detail":"Forbidden"}', { status: 403, headers: { 'content-type': 'application/json' } });
+  const run = await smoke(worldFetch(world({ now: NOW }), { '/event-status/': forbidden }));
+  const req = run.requests.find((r) => r.endpoint === 'event-status');
+  assert.equal(req.classification, 'HTTP');
+  assert.equal(req.status, 403);
+  assert.notEqual(run.exitCode, EXIT.NETWORK_OR_BLOCKED);
+  assert.equal(byId(run, 'S1')[0].status, 'UNVERIFIED');
 });
 
 test('Cloudflare challenge is classified as blocked (exit 3)', async () => {

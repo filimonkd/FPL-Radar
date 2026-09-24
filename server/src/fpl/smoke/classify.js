@@ -7,16 +7,16 @@ const LOGIN = /(login|sign in|signin|users\.premierleague\.com)/i;
 const EGRESS_DENIED = /(host not in allowlist|host_not_allowed|egress)/i;
 
 // Returns one of: OK, NETWORK, BLOCKED, UPDATING, HTTP, INVALID_JSON.
-// `mayRequireAuth` marks requests where a genuine 401/403 is a meaningful
-// answer (private league standings); on every other endpoint FPL is public,
-// so 401/403 means something between us and FPL refused the request.
-export function classifyResponse({ error, status, contentType = '', text = '', json, denyReason, mayRequireAuth = false }) {
+// BLOCKED requires a concrete denial indicator: an egress proxy's
+// x-deny-reason header or "host not in allowlist" body, a Cloudflare
+// `cf-mitigated` header, or a recognized challenge page. Any other upstream
+// 401/403/429 stays HTTP so it is reported as FPL's actual answer.
+export function classifyResponse({ error, status, contentType = '', text = '', json, denyReason, cfMitigated }) {
   if (error) return 'NETWORK';
   if (denyReason || ((status === 403 || status === 407) && EGRESS_DENIED.test(text))) return 'BLOCKED';
+  if (cfMitigated) return 'BLOCKED';
+  if ((status === 403 || status === 429 || status === 503) && CHALLENGE.test(text)) return 'BLOCKED';
   if (UPDATING.test(text)) return 'UPDATING';
-  if (status === 429) return 'BLOCKED';
-  if ((status === 403 || status === 503) && CHALLENGE.test(text)) return 'BLOCKED';
-  if ((status === 401 || status === 403) && !mayRequireAuth) return 'BLOCKED';
   if (status < 200 || status >= 300) return 'HTTP';
   if (json === undefined || !/json/i.test(contentType)) return 'INVALID_JSON';
   return 'OK';

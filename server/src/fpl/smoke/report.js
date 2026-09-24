@@ -8,7 +8,7 @@ const cell = (v) => String(v ?? '—').replace(/\|/g, '\\|').replace(/\n/g, ' ')
 
 export function renderReport(run, { shapes = {}, diffs = {}, baselineWritten = false } = {}) {
   const lines = [];
-  const counts = { PASS: 0, FAIL: 0, UNVERIFIED: 0 };
+  const counts = { PASS: 0, FAIL: 0, UNVERIFIED: 0, DEFERRED_TO_STEP_3: 0 };
   for (const c of run.checks) counts[c.status] += 1;
 
   lines.push('# FPL smoke report', '');
@@ -17,14 +17,14 @@ export function renderReport(run, { shapes = {}, diffs = {}, baselineWritten = f
   lines.push(`- Gameweek: ${run.gw ?? 'unknown'}${run.gwSource ? ` (${run.gwSource})` : ''}`);
   lines.push(`- Leagues: ${run.inputs.leagues.join(', ') || 'none given'}; entries: ${run.inputs.entries.join(', ') || 'none given'}`);
   lines.push(`- **Exit code ${run.exitCode} — ${EXIT_LABEL[run.exitCode]}**: ${run.exitReason}`);
-  lines.push(`- Checks: ${counts.PASS} PASS, ${counts.FAIL} FAIL, ${counts.UNVERIFIED} UNVERIFIED`);
+  lines.push(`- Checks: ${counts.PASS} PASS, ${counts.FAIL} FAIL, ${counts.UNVERIFIED} UNVERIFIED, ${counts.DEFERRED_TO_STEP_3} DEFERRED_TO_STEP_3 (recorded, not counted toward the exit code)`);
   lines.push(`- Samples/shapes baseline: ${baselineWritten ? 'written by this run' : 'not written (no successful responses, or baseline kept; use --update-baseline)'}`, '');
 
   lines.push('## Requests', '');
   lines.push('| Endpoint | Path | Result | HTTP | Content-Type | Cache-Control | Bytes | ms | Cloudflare | Schema |');
   lines.push('|---|---|---|---|---|---|---|---|---|---|');
   for (const r of run.requests) {
-    lines.push(`| ${cell(r.endpoint)} | \`${cell(r.path)}\` | ${cell(r.classification)}${r.error ? ` (${cell(r.error)})` : ''}${r.denyReason ? ` (x-deny-reason: ${cell(r.denyReason)})` : ''} | ${cell(r.status)} | ${cell(r.contentType)} | ${cell(r.cacheControl)} | ${cell(r.bytes)} | ${cell(r.durationMs)} | ${r.cloudflare ? 'cf-ray' : '—'} | ${r.schemaOk === undefined ? '—' : r.schemaOk ? 'ok' : '**FAIL**'} |`);
+    lines.push(`| ${cell(r.endpoint)} | \`${cell(r.path)}\` | ${cell(r.classification)}${r.error ? ` (${cell(r.error)})` : ''}${r.denyReason ? ` (x-deny-reason: ${cell(r.denyReason)})` : ''}${r.cfMitigated ? ` (cf-mitigated: ${cell(r.cfMitigated)})` : ''} | ${cell(r.status)} | ${cell(r.contentType)} | ${cell(r.cacheControl)} | ${cell(r.bytes)} | ${cell(r.durationMs)} | ${r.cloudflare ? 'cf-ray' : '—'} | ${r.schemaOk === undefined ? '—' : r.schemaOk ? 'ok' : '**FAIL**'} |`);
   }
   const updating = run.requests.filter((r) => r.gameUpdating);
   lines.push('', `"Game is being updated" body seen: ${updating.length ? updating.map((r) => r.path).join(', ') : 'no'}.`);
@@ -35,6 +35,10 @@ export function renderReport(run, { shapes = {}, diffs = {}, baselineWritten = f
   lines.push('', '## Assumption checks', '');
   lines.push('| ID | Endpoint | Check | Verdict | Detail |', '|---|---|---|---|---|');
   for (const c of run.checks) lines.push(`| ${c.id} | ${cell(c.endpoint)} | ${cell(c.title)} | **${c.status}** | ${cell(c.detail)} |`);
+  const deferred = run.checks.filter((c) => c.status === 'DEFERRED_TO_STEP_3');
+  if (deferred.length) {
+    lines.push('', `Deferred to Step 3 (engine code; excluded from the exit code): ${deferred.map((c) => `${c.id} — ${c.title}`).join('; ')}.`);
+  }
 
   lines.push('', '## Schema comparison (current zod schemas vs reality)', '');
   const schemaEntries = Object.entries(run.schema);
