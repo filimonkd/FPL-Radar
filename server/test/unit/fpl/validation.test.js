@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { z } from 'zod';
 import { validate } from '../../../src/fpl/validate.js';
 import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
-import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
+import {
+  fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions,
+  syntheticFixture, syntheticEntry, syntheticHistoryRow, syntheticEntryHistory, syntheticPick,
+  syntheticLiveElement, syntheticTransfer, syntheticStandingsRow,
+} from './helpers.js';
 
 const paths = (result) => result.issues.map((i) => i.split(':')[0]);
 
@@ -48,21 +52,21 @@ const cases = [
     name: 'fixtures (all)',
     call: (c) => c.getFixtures(),
     url: '/fixtures/',
-    valid: [{ id: 1, event: null, team_h: 1, team_a: 2, kickoff_time: null, finished: false, team_h_score: null, team_a_score: null }],
+    valid: [syntheticFixture(1, null, { kickoff_time: null, started: false, finished: false, finished_provisional: false, team_h_score: null, team_a_score: null })],
     invalid: { fixtures: [] },
   },
   {
     name: 'fixtures (by event)',
     call: (c) => c.getFixtures({ event: 3 }),
     url: '/fixtures/?event=3',
-    valid: [{ id: 1, event: 3, team_h: 1, team_a: 2, kickoff_time: '2000-01-01T00:00:00Z', finished: true, team_h_score: 2, team_a_score: 0 }],
+    valid: [syntheticFixture(1, 3)],
     invalid: [{ id: 1 }],
   },
   {
     name: 'event live',
     call: (c) => c.getEventLive(4),
     url: '/event/4/live/',
-    valid: { elements: [{ id: 1, stats: { minutes: 90, total_points: 6 } }] },
+    valid: { elements: [syntheticLiveElement(1, 6)] },
     invalid: { elements: [{ id: 1, stats: null }] },
   },
   {
@@ -76,23 +80,25 @@ const cases = [
     name: 'entry',
     call: (c) => c.getEntry(99),
     url: '/entry/99/',
-    valid: { id: 99, name: 'Synthetic XI' },
+    valid: syntheticEntry(99),
     invalid: { id: 99 },
   },
   {
     name: 'entry history',
     call: (c) => c.getEntryHistory(99),
     url: '/entry/99/history/',
-    valid: { current: [{ event: 1, points: 50, total_points: 50 }], past: [] },
-    invalid: { current: [{ event: 1, points: '50', total_points: 50 }], past: [] },
+    valid: { current: [syntheticHistoryRow(1, 50, 50)], past: [], chips: [] },
+    invalid: { current: [{ ...syntheticHistoryRow(1, 50, 50), points: '50' }], past: [], chips: [] },
   },
   {
     name: 'entry picks',
     call: (c) => c.getEntryPicks(99, 2),
     url: '/entry/99/event/2/picks/',
     valid: {
-      picks: [{ element: 1, position: 1, multiplier: 2, is_captain: true, is_vice_captain: false }],
-      entry_history: { event: 2, points: 60 },
+      active_chip: null,
+      automatic_subs: [],
+      picks: [syntheticPick(0)],
+      entry_history: syntheticEntryHistory(2, 60, 120),
     },
     invalid: { picks: [], entry_history: null },
   },
@@ -100,8 +106,8 @@ const cases = [
     name: 'entry transfers',
     call: (c) => c.getEntryTransfers(99),
     url: '/entry/99/transfers/',
-    valid: [{ element_in: 1, element_out: 2, event: 3, time: '2000-01-01T00:00:00Z' }],
-    invalid: [{ element_in: 1, element_out: 2, event: 3 }],
+    valid: [syntheticTransfer(99, 3)],
+    invalid: [(({ time, ...rest }) => rest)(syntheticTransfer(99, 3))], // no time
   },
   {
     name: 'classic league standings',
@@ -109,7 +115,7 @@ const cases = [
     url: '/leagues-classic/314/standings/?page_standings=2',
     valid: {
       league: { id: 314, name: 'Synthetic League' },
-      standings: { has_next: false, page: 2, results: [{ entry: 1, entry_name: 'A', rank: 1, total: 100 }] },
+      standings: { has_next: false, page: 2, results: [syntheticStandingsRow(1, 1)] },
     },
     invalid: { league: { id: 314, name: 'L' }, standings: { has_next: 'no', page: 2, results: [] } },
   },

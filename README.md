@@ -110,6 +110,7 @@ npm run fpl:smoke -- --league <leagueA> --league <leagueB> --entry <hitTaker> [-
 ```
 
 - Pass both private leagues, and at least one entry that has taken a transfer hit (`event_transfers_cost > 0`) this season, so the points semantics can be proven.
+- `--league-members <n>` also checks up to `n` members of each league (history, picks, transfers). Use it when you don't know who has taken a hit; it also exercises auto-subs and chips. Expect about 4 requests per member, one second apart.
 - `--gw` defaults to the latest gameweek with `data_checked = true`.
 - Writes `server/fpl-contract/<season>/smoke-report.md` every time. The anonymized `*.sample.json` and `*.shape.json` files are written on the first recording, or with `--update-baseline`. Samples are only ever written from real 2xx JSON responses, and the run refuses to write them if any real name or ID survived anonymization. The report only uses aliases (`E1`, `L1`, ...).
 - Exit codes: `0` all pass · `1` schema break · `2` an assumption failed or is unverified · `3` network or blocked. BLOCKED needs a concrete denial indicator: an egress proxy's `x-deny-reason` or "host not in allowlist", Cloudflare's `cf-mitigated` header, or a recognized challenge page. Any other 401/403/429 is reported as FPL's actual HTTP answer.

@@ -34,7 +34,8 @@ export async function runSmoke({
   fetch: fetchImpl = globalThis.fetch,
   baseUrl = 'https://fantasy.premierleague.com/api',
   leagues = [],
-  entries = [],
+  entries: explicitEntries = [],
+  leagueMembers = 0, // also sample up to N members of each league (finds hit-takers, auto-subs, chips)
   gw: requestedGw = null,
   now = () => new Date(),
   sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
@@ -46,7 +47,7 @@ export async function runSmoke({
 }) {
   const run = {
     startedAt: now().toISOString(),
-    inputs: { leagues: leagues.map(ids.leagueAlias), entries: entries.map(ids.entryAlias), requestedGw },
+    inputs: { leagues: leagues.map(ids.leagueAlias), entries: explicitEntries.map(ids.entryAlias), leagueMembers, requestedGw },
     requests: [],
     checks: [],
     schema: {}, // endpoint -> [{ path, issues }]
@@ -217,6 +218,7 @@ export async function runSmoke({
     check('S2', 'event-status', 'leagues value', UNVERIFIED, `request ${describeFailure(es)}`);
   }
 
+  const memberEntries = [];
   // ── leagues-classic standings ─────────────────────────────────────
   if (leagues.length === 0) {
     skip('leagues-classic-standings', 'no --league given');
@@ -247,6 +249,9 @@ export async function runSmoke({
       if (res.classification !== 'OK') break;
       pages.push(res.json);
     }
+    if (leagueMembers > 0) {
+      memberEntries.push(...pages.flatMap((p) => p.standings?.results ?? []).map((r) => r.entry).slice(0, leagueMembers));
+    }
     const pageSize = pages[0].standings.results.length;
     const all = pages.flatMap((p) => p.standings?.results ?? []).map((r) => r.entry);
     const dupes = all.length - new Set(all).size;
@@ -262,6 +267,9 @@ export async function runSmoke({
   }
 
   // ── entries ───────────────────────────────────────────────────────
+  // Explicit --entry values first, then sampled league members (deduplicated).
+  const entries = [...new Set([...explicitEntries, ...memberEntries])];
+  run.inputs.sampledMembers = entries.length - explicitEntries.length;
   if (entries.length === 0) {
     for (const ep of ['entry', 'entry-history', 'entry-picks', 'entry-transfers']) skip(ep, 'no --entry given');
     for (const id of ['E1', 'E2', 'H1', 'H2', 'H3', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'T1', 'T2', 'T3']) {

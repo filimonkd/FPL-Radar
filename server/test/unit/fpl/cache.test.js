@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TtlCache } from '../../../src/fpl/cache.js';
 import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
-import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
+import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions, syntheticEntry } from './helpers.js';
 
 test('returns values until the TTL expires', () => {
   const clock = fakeClock();
@@ -70,7 +70,7 @@ test('client serves repeated calls from cache within TTL', async () => {
 
 test('client caches per path', async () => {
   const clock = fakeClock();
-  const fetch = scriptedFetch([() => jsonResponse({ id: 1, name: 'Entry' })]);
+  const fetch = scriptedFetch([() => jsonResponse(syntheticEntry(1))]);
   const client = createFplClient(testOptions(clock, { fetch }));
   await client.getEntry(1);
   await client.getEntry(2);

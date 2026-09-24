@@ -1,5 +1,7 @@
 // npm run fpl:smoke -- --league <id> [--league <id>] --entry <id> [--entry <id>] [--gw <n>]
-//                      [--update-baseline] [--out <dir>] [--delay-ms <n>] [--base-url <url>]
+//                      [--league-members <n>] [--update-baseline] [--out <dir>] [--delay-ms <n>] [--base-url <url>]
+// --league-members N also checks up to N members of each league (history, picks,
+// transfers), which finds transfer hits, auto-subs and chips without hunting for IDs.
 // Base URL: --base-url, else FPL_API_BASE_URL, else https://fantasy.premierleague.com/api.
 //
 // Real-FPL smoke test (architecture v0.2 §11, inherited by v0.3). Writes, under
@@ -29,6 +31,7 @@ const { values } = parseArgs({
     out: { type: 'string' },
     'update-baseline': { type: 'boolean', default: false },
     'delay-ms': { type: 'string', default: '1000' },
+    'league-members': { type: 'string', default: '0' },
     'base-url': { type: 'string' },
   },
 });
@@ -45,6 +48,7 @@ const toId = (flag) => (v) => {
 const leagues = values.league.map(toId('league'));
 const entries = values.entry.map(toId('entry'));
 const gw = values.gw ? toId('gw')(values.gw) : null;
+const leagueMembers = values['league-members'] === '0' ? 0 : toId('league-members')(values['league-members']);
 if (!leagues.length || !entries.length) {
   console.warn('Warning: §11 expects both private leagues (--league) and at least one hit-taking --entry; missing inputs are reported as UNVERIFIED.');
 }
@@ -64,6 +68,7 @@ const run = await runSmoke({
   entries,
   gw,
   ids,
+  leagueMembers,
   delayMs: Number(values['delay-ms']),
   baseUrl,
 });
@@ -75,6 +80,15 @@ await mkdir(outDir, { recursive: true });
 // Real identifiers that must never appear in committed files.
 const secrets = [...leagues, ...entries];
 for (const body of run.bodies['entry'] ?? []) secrets.push(body.player_first_name, body.player_last_name, body.name);
+// Ranks and career history identify a manager as surely as a name does.
+const collectRanks = (o) => {
+  if (!o || typeof o !== 'object') return;
+  for (const [k, v] of Object.entries(o)) {
+    if (/rank$/.test(k) && typeof v === 'number' && v >= 1000) secrets.push(v);
+    else if (v && typeof v === 'object') collectRanks(v);
+  }
+};
+for (const endpoint of ['entry', 'entry-history', 'entry-picks']) for (const b of run.bodies[endpoint] ?? []) collectRanks(b);
 for (const body of run.bodies['leagues-classic-standings'] ?? []) {
   secrets.push(body.league?.name);
   for (const r of body.standings?.results ?? []) secrets.push(r.entry, r.entry_name, r.player_name);

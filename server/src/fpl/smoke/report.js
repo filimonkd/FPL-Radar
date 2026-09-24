@@ -15,7 +15,8 @@ export function renderReport(run, { shapes = {}, diffs = {}, baselineWritten = f
   lines.push(`- Started: ${run.startedAt}`, `- Finished: ${run.finishedAt}`);
   lines.push(`- Season: ${run.season ?? 'unknown (bootstrap unavailable)'}`);
   lines.push(`- Gameweek: ${run.gw ?? 'unknown'}${run.gwSource ? ` (${run.gwSource})` : ''}`);
-  lines.push(`- Leagues: ${run.inputs.leagues.join(', ') || 'none given'}; entries: ${run.inputs.entries.join(', ') || 'none given'}`);
+  lines.push(`- Leagues: ${run.inputs.leagues.join(', ') || 'none given'}; entries: ${run.inputs.entries.join(', ') || 'none given'}` +
+    (run.inputs.leagueMembers ? `; plus ${run.inputs.sampledMembers ?? 0} sampled league member(s) (--league-members ${run.inputs.leagueMembers})` : ''));
   lines.push(`- **Exit code ${run.exitCode} — ${EXIT_LABEL[run.exitCode]}**: ${run.exitReason}`);
   lines.push(`- Checks: ${counts.PASS} PASS, ${counts.FAIL} FAIL, ${counts.UNVERIFIED} UNVERIFIED, ${counts.DEFERRED_TO_STEP_3} DEFERRED_TO_STEP_3 (recorded, not counted toward the exit code)`);
   lines.push(`- Samples/shapes baseline: ${baselineWritten ? 'written by this run' : 'not written (no successful responses, or baseline kept; use --update-baseline)'}`, '');

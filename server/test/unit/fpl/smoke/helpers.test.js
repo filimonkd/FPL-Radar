@@ -93,3 +93,23 @@ test('chip rule validation rejects overlaps and bad windows', () => {
   assert.equal(chipRulesVerdict([{ name: 'bboost', number: 1, start_event: 1, stop_event: 19 }, { name: 'bboost', number: 1, start_event: 19, stop_event: 38 }])[0], 'FAIL');
   assert.equal(chipRulesVerdict([{ name: 'bboost', number: 1, start_event: 1, stop_event: 19 }, { name: 'bboost', number: 1, start_event: 20, stop_event: 38 }])[0], 'PASS');
 });
+
+test('entry, history and picks samples lose rank quasi-identifiers and career history', () => {
+  const ids = createIdMap();
+  const entry = anonymize('entry', {
+    id: 1101, name: 'X', player_first_name: 'A', player_last_name: 'B', joined_time: '2019-07-24T21:16:06Z', years_active: 9,
+    summary_overall_rank: 927347, summary_event_rank: 1010998,
+    leagues: { classic: [{ id: 314, name: 'Overall', entry_rank: 927347, entry_last_rank: 950000, created: '2019-01-01' }], h2h: [] },
+  }, ids);
+  const history = anonymize('entry-history', {
+    current: [{ event: 1, points: 60, total_points: 60, overall_rank: 927347, rank: 1010998, rank_sort: 1011000 }],
+    past: [{ season_name: '2017/18', total_points: 2255, rank: 43485 }, { season_name: '2018/19', total_points: 2134, rank: 596555 }],
+    chips: [],
+  }, ids);
+  const picks = anonymize('entry-picks', { entry_history: { event: 1, overall_rank: 927347, rank: null } }, ids);
+  assert.deepEqual(findLeaks({ entry, history, picks }, [927347, 1010998, 1011000, 950000, 43485, 596555, 2255, '2017/18', '2019-07-24']), []);
+  assert.equal(history.past.length, 1);
+  assert.equal(picks.entry_history.rank, null); // nulls stay null, so shapes are unchanged
+  assert.equal(typeof history.current[0].overall_rank, 'number');
+  assert.equal(history.current[0].points, 60); // points are kept for reconciliation
+});

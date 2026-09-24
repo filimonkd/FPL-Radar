@@ -4,6 +4,7 @@ import { runSmoke, EXIT } from '../../../../src/fpl/smoke/runSmoke.js';
 import { createIdMap } from '../../../../src/fpl/smoke/anonymize.js';
 import { renderReport } from '../../../../src/fpl/smoke/report.js';
 import { world, worldFetch, LEAGUE, ENTRY, GW } from './syntheticFpl.js';
+import { syntheticHistoryRow } from '../helpers.js';
 
 const NOW = new Date(Date.UTC(2026, 7, 31));
 
@@ -121,4 +122,31 @@ test('report uses aliases only and never real IDs or names', async () => {
   assert.ok(!/Real (Team|Person|League)|Realfirst|Reallast/.test(md));
   assert.match(md, /E1/);
   assert.match(md, /L1/);
+});
+
+test('--league-members samples league members as extra entries', async () => {
+  const data = world({ now: NOW });
+  // Member 111111 took a hit (gross semantics); ENTRY did not.
+  data[`/entry/${ENTRY}/history/`] = {
+    current: [1, 2, 3].map((e) => syntheticHistoryRow(e, 60, 60 * e)),
+    past: [], chips: [],
+  };
+  data['/entry/111111/history/'] = {
+    current: [syntheticHistoryRow(1, 50, 50), syntheticHistoryRow(2, 70, 116, 4), syntheticHistoryRow(3, 60, 176)],
+    past: [], chips: [],
+  };
+  const run = await smoke(worldFetch(data), { leagueMembers: 5 });
+  assert.equal(run.inputs.sampledMembers, 2); // 111111 and 222222; ENTRY was already explicit
+  assert.equal(run.reconciliation.combined.semantics, 'GROSS_BEFORE_HITS');
+  assert.equal(byId(run, 'H3')[0].status, 'PASS');
+  const md = renderReport(run, {});
+  assert.ok(!md.includes('111111') && !md.includes('222222'));
+  assert.match(md, /2 sampled league member\(s\)/);
+});
+
+test('without --league-members only explicit entries are checked', async () => {
+  const fetch = worldFetch(world({ now: NOW }));
+  const run = await smoke(fetch);
+  assert.equal(run.inputs.sampledMembers, 0);
+  assert.ok(!fetch.calls.some((p) => p.startsWith('/entry/111111/')));
 });

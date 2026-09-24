@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classifyStatus, parseRetryAfter, FplError } from '../../../src/fpl/errors.js';
 import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
-import { fakeClock, jsonResponse, scriptedFetch, testOptions } from './helpers.js';
+import { fakeClock, jsonResponse, scriptedFetch, testOptions, syntheticEntry } from './helpers.js';
 
 test('classifies HTTP statuses', () => {
   assert.equal(classifyStatus(404), FplErrorKind.NOT_FOUND);
@@ -42,7 +42,7 @@ test('retries after a timeout', async () => {
   const clock = fakeClock();
   const hang = (_url, { signal }) =>
     new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason)));
-  const fetch = scriptedFetch([hang, jsonResponse({ id: 7, name: 'Entry' })]);
+  const fetch = scriptedFetch([hang, jsonResponse(syntheticEntry(7))]);
   const client = createFplClient(testOptions(clock, { fetch, timeoutMs: 20 }));
   const entry = await client.getEntry(7);
   assert.equal(entry.id, 7);
