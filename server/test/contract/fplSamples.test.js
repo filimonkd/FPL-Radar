@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as schemas from '../../src/fpl/schemas.js';
 import { validate } from '../../src/fpl/validate.js';
 import { ENDPOINT_SCHEMA } from '../../src/fpl/smoke/runSmoke.js';
@@ -11,7 +12,7 @@ import { deriveShape } from '../../src/fpl/smoke/shape.js';
 // Contract tests (architecture v0.2 §16): every committed, anonymized FPL
 // sample must parse with its zod schema and fit its recorded shape.
 
-const CONTRACT_DIR = new URL('../../fpl-contract/', import.meta.url).pathname;
+const CONTRACT_DIR = fileURLToPath(new URL('../../fpl-contract/', import.meta.url));
 
 async function samples() {
   if (!existsSync(CONTRACT_DIR)) return [];

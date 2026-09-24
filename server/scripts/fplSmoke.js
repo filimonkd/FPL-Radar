@@ -13,6 +13,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { runSmoke } from '../src/fpl/smoke/runSmoke.js';
 import { deriveShape, diffShapes } from '../src/fpl/smoke/shape.js';
@@ -67,7 +68,7 @@ const run = await runSmoke({
   baseUrl,
 });
 
-const serverDir = new URL('..', import.meta.url).pathname;
+const serverDir = fileURLToPath(new URL('..', import.meta.url));
 const outDir = values.out ?? join(serverDir, 'fpl-contract', run.season ?? '2026-27');
 await mkdir(outDir, { recursive: true });
 

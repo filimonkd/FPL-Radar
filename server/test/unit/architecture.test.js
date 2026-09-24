@@ -2,9 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Boundary rule (architecture v0.3 §10): src/analytics must stay pure.
-const ANALYTICS_DIR = new URL('../../src/analytics/', import.meta.url).pathname;
+const ANALYTICS_DIR = fileURLToPath(new URL('../../src/analytics/', import.meta.url));
 
 const FORBIDDEN_IMPORT = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]((?:mongoose|mongodb)(?:\/[^'"]*)?|(?:\.\.\/)+(?:db|models|repositories)(?:\/[^'"]*)?)['"]/g;
 const PROCESS_ENV = /\bprocess\s*\.\s*env\b|\bprocess\s*\[\s*['"]env['"]\s*\]/;
@@ -46,3 +47,18 @@ test('src/analytics has no db imports and does not read process.env', async () =
   }
   assert.deepEqual(problems, []);
 });
+
+// Windows portability: taking `.pathname` of a file URL built from import.meta.url yields "/C:/..."
+// which breaks fs paths on Windows; use fileURLToPath instead.
+test('no file-URL .pathname used as a filesystem path', async () => {
+  const serverRoot = fileURLToPath(new URL('../../', import.meta.url));
+  const offenders = [];
+  for (const dir of ['src', 'scripts', 'test']) {
+    for (const file of await sourceFiles(join(serverRoot, dir))) {
+      const text = await readFile(file, 'utf8');
+      if (/import\.meta\.url\)\s*\.pathname/.test(text)) offenders.push(relative(serverRoot, file));
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
