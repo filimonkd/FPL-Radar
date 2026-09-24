@@ -57,6 +57,45 @@ curl -s localhost:4000/api/health
 
 The response is `200 {"status":"ok",...}` when the process, the MongoDB connection (live ping) and the environment are all healthy. Otherwise it is `503 {"status":"degraded",...}`, and `checks` shows which check failed.
 
+## FPL client (`server/src/fpl`)
+
+A persistence-free client for the public, unauthenticated FPL endpoints. Nothing calls it yet. It gets wired into sync in a later step.
+
+```js
+import { createFplClient } from './fpl/index.js';
+
+const fpl = createFplClient({ onEvent: (e) => console.log(e) });
+const bootstrap = await fpl.getBootstrapStatic();
+```
+
+| Method | Path |
+|---|---|
+| `getBootstrapStatic()` | `/bootstrap-static/` |
+| `getFixtures({ event? })` | `/fixtures/`, `/fixtures/?event=N` |
+| `getEventLive(event)` | `/event/{event}/live/` |
+| `getElementSummary(elementId)` | `/element-summary/{id}/` |
+| `getEntry(entryId)` | `/entry/{id}/` |
+| `getEntryHistory(entryId)` | `/entry/{id}/history/` |
+| `getEntryPicks(entryId, event)` | `/entry/{id}/event/{event}/picks/` |
+| `getClassicLeagueStandings(leagueId, { page? })` | `/leagues-classic/{id}/standings/?page_standings=N` |
+
+Pipeline for each call: cache and single-flight, then retry, then circuit breaker, then rate limiter, then `fetch` with a timeout, then boundary validation. All settings can be overridden through `createFplClient(options)`.
+
+| Concern | Default |
+|---|---|
+| Timeout | 10 s per attempt (covers headers and body) |
+| Retry | 3 attempts, exponential backoff with full jitter (500 ms base, 8 s cap), honours `Retry-After` on 429. Retries only timeout, network, 429 and 5xx. |
+| Rate limit | Token bucket, burst 5, 2 req/s, FIFO |
+| Circuit breaker | Opens after 5 consecutive upstream failures (timeout/network/429/5xx), stays open 30 s, then allows a single half-open probe. 404 and validation errors do not count. |
+| Cache | In-memory TTL + LRU (500 entries). TTLs: 60 s for live, 2 min for standings, 5–10 min for others. Failures are never cached. |
+| Logging hook | `onEvent({ type })` with `request`, `response`, `retry`, `cache_hit`, `circuit_state`, `error`. Exceptions thrown by the hook are swallowed. |
+
+Errors are `FplError` with a `kind` of `timeout`, `network`, `rate_limited`, `upstream_unavailable`, `not_found`, `http`, `invalid_response`, `validation` or `circuit_open`, plus `retryable`, `status`, `url` and `issues` (for validation errors).
+
+Validation checks only the fields the app relies on. Unknown fields pass through, so additive upstream changes don't break the client.
+
+**Unverified:** FPL publishes no API documentation. The endpoint paths and response shapes above come from community usage. They have not been checked against live responses from this repo's CI or dev environment. The rate-limit, retry and TTL defaults are app policy, not FPL guidance.
+
 ## Test
 
 ```bash
