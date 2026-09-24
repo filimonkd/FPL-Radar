@@ -5,6 +5,7 @@ import { CircuitBreaker, DEFAULT_BREAKER } from './circuitBreaker.js';
 import { TtlCache } from './cache.js';
 import { validate } from './validate.js';
 import * as schemas from './schemas.js';
+import { DEFAULT_FPL_API_BASE_URL } from './baseUrl.js';
 
 // FPL API client boundary. Independent of persistence: it only fetches,
 // validates and caches in memory.
@@ -15,7 +16,7 @@ import * as schemas from './schemas.js';
 //
 // Returned objects may be shared with the cache: treat them as read-only.
 
-export const DEFAULT_BASE_URL = 'https://fantasy.premierleague.com/api';
+export const DEFAULT_BASE_URL = DEFAULT_FPL_API_BASE_URL;
 export const DEFAULT_TIMEOUT_MS = 10_000;
 
 // Cache TTLs in ms. Values are app policy, not FPL guidance.

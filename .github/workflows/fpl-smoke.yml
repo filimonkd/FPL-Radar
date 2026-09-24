@@ -1,0 +1,114 @@
+name: FPL smoke test
+
+# Step 2 real-FPL smoke test (architecture v0.2 §11, inherited by v0.3).
+# Manually dispatched; calls the real FPL API from a GitHub-hosted runner and
+# uploads the anonymized contract directory as an artifact. It never commits:
+# review the artifact, then commit samples deliberately in a normal PR.
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_a:
+        description: First private classic league ID
+        required: true
+        type: string
+      league_b:
+        description: Second private classic league ID
+        required: true
+        type: string
+      hit_entry:
+        description: Entry ID of a manager who took a transfer hit this season
+        required: true
+        type: string
+      gameweek:
+        description: Gameweek to check (blank = latest data_checked gameweek)
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fpl-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FPL_API_BASE_URL: ${{ vars.FPL_API_BASE_URL || 'https://fantasy.premierleague.com/api' }}
+      LEAGUE_A: ${{ inputs.league_a }}
+      LEAGUE_B: ${{ inputs.league_b }}
+      HIT_ENTRY: ${{ inputs.hit_entry }}
+      GAMEWEEK: ${{ inputs.gameweek }}
+    steps:
+      - name: Validate and mask inputs
+        run: |
+          for name in LEAGUE_A LEAGUE_B HIT_ENTRY; do
+            value="${!name}"
+            if ! [[ "$value" =~ ^[1-9][0-9]{0,11}$ ]]; then
+              echo "::error::$name must be a positive integer"
+              exit 64
+            fi
+            echo "::add-mask::$value"
+          done
+          if [[ -n "$GAMEWEEK" ]] && ! [[ "$GAMEWEEK" =~ ^([1-9]|[12][0-9]|3[0-8])$ ]]; then
+            echo "::error::gameweek must be blank or 1-38"
+            exit 64
+          fi
+
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run smoke test
+        id: smoke
+        run: |
+          args=(--league "$LEAGUE_A" --league "$LEAGUE_B" --entry "$HIT_ENTRY")
+          if [[ -n "$GAMEWEEK" ]]; then args+=(--gw "$GAMEWEEK"); fi
+          set +e
+          npm run fpl:smoke -- "${args[@]}"
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Add report to job summary
+        if: always()
+        run: |
+          report=$(find server/fpl-contract -name smoke-report.md 2>/dev/null | head -n 1)
+          if [[ -n "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No smoke-report.md was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload contract directory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fpl-contract-${{ github.run_id }}
+          path: server/fpl-contract/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail on non-zero smoke exit code
+        if: always()
+        env:
+          SMOKE_EXIT: ${{ steps.smoke.outputs.exit_code }}
+        run: |
+          case "$SMOKE_EXIT" in
+            0) echo "Smoke test passed." ;;
+            1) echo "::error::Exit 1: schema break (see report)"; exit 1 ;;
+            2) echo "::error::Exit 2: an assumption failed or is unverified (see report)"; exit 2 ;;
+            3) echo "::error::Exit 3: FPL unreachable or blocked (see report)"; exit 3 ;;
+            *) echo "::error::Smoke test did not complete (exit '${SMOKE_EXIT}')"; exit 1 ;;
+          esac

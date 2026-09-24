@@ -115,6 +115,14 @@ npm run fpl:smoke -- --league <leagueA> --league <leagueB> --entry <hitTaker> [-
 - Exit codes: `0` all pass · `1` schema break · `2` an assumption failed or is unverified · `3` network or blocked. BLOCKED needs a concrete denial indicator: an egress proxy's `x-deny-reason` or "host not in allowlist", Cloudflare's `cf-mitigated` header, or a recognized challenge page. Any other 401/403/429 is reported as FPL's actual HTTP answer.
 - `V3` (sum of engine effective multipliers × points = gross) is reported as `DEFERRED_TO_STEP_3` and doesn't affect the exit code. `P5` records the same identity using FPL's own multipliers.
 - Private league standings needing a login are classified `AUTH_REQUIRED`, and the group must use manual entry IDs. The smoke test never logs in to FPL.
+- The base URL comes from `--base-url`, else `FPL_API_BASE_URL`, else `https://fantasy.premierleague.com/api`.
+
+**From GitHub Actions** (no local network needed): run the **FPL smoke test** workflow (`.github/workflows/fpl-smoke.yml`) from the Actions tab, and enter `league_a`, `league_b`, `hit_entry` and an optional `gameweek`.
+- Inputs must be positive integers. They're masked in the job logs but visible in the run's trigger details, so keep the repository private.
+- It runs `npm ci` and `npm run fpl:smoke` against the real API. It uses the `FPL_API_BASE_URL` repository variable if one is set, otherwise the public URL.
+- It adds the report to the job summary and uploads `server/fpl-contract/` as the artifact `fpl-contract-<run id>`, kept for 14 days.
+- The job's result matches the smoke exit code (0/1/2/3).
+- It has read-only permissions and **never commits**. Review the artifact, then commit samples deliberately in a normal PR.
 
 ## Test
 
@@ -132,6 +140,7 @@ npm run test:integration # server/test/integration (none yet; MongoMemoryReplSet
 | `MONGODB_URI` | required      | `mongodb://localhost:27017/?replicaSet=rs0&directConnection=true` |
 | `MONGODB_DB`  | required      | `fpl_rival_dev` locally                                   |
 | `JWT_SECRET`  | required      | any non-empty value locally                               |
+| `FPL_API_BASE_URL` | `https://fantasy.premierleague.com/api` | http(s) URL; trailing slash trimmed |
 
 The server loads `.env` from the repo root via Node's `--env-file` (`npm run dev`) or `--env-file-if-exists` (`npm start`, where the host provides the variables). `server/src/config/env.js` validates them with zod; if anything is missing or invalid, the server prints every problem and exits.
 

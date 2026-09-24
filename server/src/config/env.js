@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_FPL_API_BASE_URL, fplBaseUrlSchema } from '../fpl/baseUrl.js';
 
 // Environment contract (architecture v0.3 §17.4). Parsed once from process.env.
 
@@ -10,6 +11,7 @@ export const envSchema = z.object({
     .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
   MONGODB_DB: z.string({ error: 'is required' }).regex(/^[A-Za-z0-9_-]{1,63}$/, 'must be a valid database name'),
   JWT_SECRET: z.string({ error: 'is required' }).min(1, 'must not be empty'),
+  FPL_API_BASE_URL: fplBaseUrlSchema.default(DEFAULT_FPL_API_BASE_URL),
 });
 
 export class EnvError extends Error {

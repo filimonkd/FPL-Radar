@@ -1,5 +1,6 @@
 // npm run fpl:smoke -- --league <id> [--league <id>] --entry <id> [--entry <id>] [--gw <n>]
-//                      [--update-baseline] [--out <dir>] [--delay-ms <n>]
+//                      [--update-baseline] [--out <dir>] [--delay-ms <n>] [--base-url <url>]
+// Base URL: --base-url, else FPL_API_BASE_URL, else https://fantasy.premierleague.com/api.
 //
 // Real-FPL smoke test (architecture v0.2 §11, inherited by v0.3). Writes, under
 // server/fpl-contract/<season>/ (or --out):
@@ -17,6 +18,7 @@ import { runSmoke } from '../src/fpl/smoke/runSmoke.js';
 import { deriveShape, diffShapes } from '../src/fpl/smoke/shape.js';
 import { anonymize, createIdMap, findLeaks } from '../src/fpl/smoke/anonymize.js';
 import { renderReport } from '../src/fpl/smoke/report.js';
+import { resolveFplBaseUrl } from '../src/fpl/baseUrl.js';
 
 const { values } = parseArgs({
   options: {
@@ -46,6 +48,15 @@ if (!leagues.length || !entries.length) {
   console.warn('Warning: §11 expects both private leagues (--league) and at least one hit-taking --entry; missing inputs are reported as UNVERIFIED.');
 }
 
+let baseUrl;
+try {
+  baseUrl = resolveFplBaseUrl({ flag: values['base-url'] });
+} catch (err) {
+  console.error(err.message);
+  process.exit(64);
+}
+console.log(`FPL API: ${baseUrl}`);
+
 const ids = createIdMap();
 const run = await runSmoke({
   leagues,
@@ -53,7 +64,7 @@ const run = await runSmoke({
   gw,
   ids,
   delayMs: Number(values['delay-ms']),
-  ...(values['base-url'] ? { baseUrl: values['base-url'] } : {}),
+  baseUrl,
 });
 
 const serverDir = new URL('..', import.meta.url).pathname;
