@@ -1,0 +1,155 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "current": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 5,
+        "max": 5
+      }
+    },
+    "current[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "current[].bank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].event_transfers": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].event_transfers_cost": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].overall_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].overall_rank_percentage": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "current[].percentile_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].points_on_bench": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].rank_sort": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].total_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "current[].value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "past": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 9,
+        "max": 9
+      }
+    },
+    "past[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "past[].rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "past[].rank_percentage": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "past[].season_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "past[].total_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

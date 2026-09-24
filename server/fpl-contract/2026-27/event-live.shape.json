@@ -1,0 +1,281 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 35,
+        "max": 35
+      }
+    },
+    "elements[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].explain": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 1,
+        "max": 1
+      }
+    },
+    "elements[].explain[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].fixture": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].stats": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 1,
+        "max": 5
+      }
+    },
+    "elements[].explain[].stats[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].stats[].identifier": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].stats[].points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].stats[].points_modification": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].explain[].stats[].value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].modified": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].stats": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.assists": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.bonus": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.bps": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.clean_sheets": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.clearances_blocks_interceptions": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.creativity": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.defensive_contribution": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.expected_assists": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.expected_goal_involvements": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.expected_goals": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.expected_goals_conceded": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.goals_conceded": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.goals_scored": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.ict_index": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.in_dreamteam": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.influence": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.minutes": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.own_goals": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.penalties_missed": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.penalties_saved": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.played": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.recoveries": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.red_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.saves": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.starts": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.tackles": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.threat": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.total_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].stats.yellow_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

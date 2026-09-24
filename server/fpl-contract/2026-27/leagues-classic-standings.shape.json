@@ -1,0 +1,211 @@
+{
+  "samples": 2,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "last_updated_data": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "league.admin_entry": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "league.closed": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "league.code_privacy": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league.created": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league.cup_league": {
+      "types": [],
+      "nullable": true
+    },
+    "league.has_cup": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "league.id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "league.league_type": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league.max_entries": {
+      "types": [],
+      "nullable": true
+    },
+    "league.name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league.rank": {
+      "types": [],
+      "nullable": true
+    },
+    "league.scoring": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "league.start_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "new_entries": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "new_entries.has_next": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "new_entries.page": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "new_entries.results": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "standings": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "standings.has_next": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "standings.page": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 9,
+        "max": 10
+      }
+    },
+    "standings.results[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "standings.results[].club_badge_src": {
+      "types": [
+        "string"
+      ],
+      "nullable": true
+    },
+    "standings.results[].entry": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results[].entry_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "standings.results[].event_total": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results[].last_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results[].player_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "standings.results[].rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results[].rank_sort": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "standings.results[].total": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

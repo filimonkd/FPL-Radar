@@ -1,0 +1,161 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "active_chip": {
+      "types": [],
+      "nullable": true
+    },
+    "automatic_subs": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "entry_history": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "entry_history.bank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.event_transfers": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.event_transfers_cost": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.overall_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.overall_rank_percentage": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "entry_history.percentile_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.points_on_bench": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.rank_sort": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.total_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entry_history.value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "picks": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 15,
+        "max": 15
+      }
+    },
+    "picks[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "picks[].element": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "picks[].element_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "picks[].is_captain": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "picks[].is_vice_captain": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "picks[].multiplier": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "picks[].position": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

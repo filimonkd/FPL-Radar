@@ -1,0 +1,57 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "status": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 3,
+        "max": 3
+      }
+    },
+    "status[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "status[].bonus_added": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "status[].date": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "status[].event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "status[].points": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    }
+  }
+}

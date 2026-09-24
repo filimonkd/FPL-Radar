@@ -1,0 +1,2335 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 8,
+        "max": 8
+      }
+    },
+    "chips[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips[].chip_type": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "chips[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "chips[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "chips[].number": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "chips[].overrides": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips[].overrides.element_types": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "chips[].overrides.pick_multiplier": {
+      "types": [],
+      "nullable": true
+    },
+    "chips[].overrides.rules": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips[].overrides.scoring": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "chips[].start_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "chips[].stop_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_stats": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 26,
+        "max": 26
+      }
+    },
+    "element_stats[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "element_stats[].label": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_stats[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_types": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 4,
+        "max": 4
+      }
+    },
+    "element_types[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "element_types[].element_count": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].plural_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_types[].plural_name_short": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_types[].singular_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_types[].singular_name_short": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "element_types[].squad_max_play": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].squad_max_select": {
+      "types": [],
+      "nullable": true
+    },
+    "element_types[].squad_min_play": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].squad_min_select": {
+      "types": [],
+      "nullable": true
+    },
+    "element_types[].squad_select": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].sub_positions_locked": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "element_types[].sub_positions_locked[]": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "element_types[].ui_shirt_specific": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    "elements[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].assists": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].birth_date": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].bonus": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].bps": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].can_select": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].can_transact": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].chance_of_playing_next_round": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "elements[].chance_of_playing_this_round": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "elements[].clean_sheets": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].clean_sheets_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].clearances_blocks_interceptions": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].code": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].corners_and_indirect_freekicks_order": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "elements[].corners_and_indirect_freekicks_text": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].cost_change_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].cost_change_event_fall": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].cost_change_start": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].cost_change_start_fall": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].creativity": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].creativity_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].creativity_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].defensive_contribution": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].defensive_contribution_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].direct_freekicks_order": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "elements[].direct_freekicks_text": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].dreamteam_count": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].element_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].ep_next": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].ep_this": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].event_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_assists": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_assists_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goal_involvements": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goal_involvements_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goals": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goals_conceded": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goals_conceded_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].expected_goals_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].first_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].form": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].form_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].form_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].goals_conceded": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].goals_conceded_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].goals_scored": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].has_temporary_code": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].ict_index": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].ict_index_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].ict_index_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].in_dreamteam": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].influence": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].influence_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].influence_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].known_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].minutes": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].news": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].news_added": {
+      "types": [
+        "string"
+      ],
+      "nullable": true
+    },
+    "elements[].now_cost": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].now_cost_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].now_cost_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].opta_code": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].own_goals": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].penalties_missed": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].penalties_order": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "elements[].penalties_saved": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].penalties_text": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].photo": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].points_per_game": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].points_per_game_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].points_per_game_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_calibrating": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_hourly_rate": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_locked_until": {
+      "types": [],
+      "nullable": true
+    },
+    "elements[].price_change_percent": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_projections": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 3,
+        "max": 3
+      }
+    },
+    "elements[].price_change_projections[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_projections[].likelihood": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_projections[].offset": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].price_change_projections[].projected_percent": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].recoveries": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].red_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].region": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].removed": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].saves": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].saves_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].scout_news_link": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].scout_risks": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "elements[].second_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].selected_by_percent": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].selected_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].selected_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].special": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "elements[].squad_number": {
+      "types": [],
+      "nullable": true
+    },
+    "elements[].starts": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].starts_per_90": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].status": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].tackles": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].team": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].team_code": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].team_join_date": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].threat": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].threat_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].threat_rank_type": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].total_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].transfers_in": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].transfers_in_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].transfers_out": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].transfers_out_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "elements[].value_form": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].value_season": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].web_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "elements[].yellow_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 38,
+        "max": 38
+      }
+    },
+    "events[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "events[].average_entry_score": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].can_enter": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].can_manage": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].chip_plays": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    "events[].chip_plays[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "events[].chip_plays[].chip_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "events[].chip_plays[].num_played": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].cup_leagues_created": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].data_checked": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].deadline_time": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "events[].deadline_time_epoch": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].deadline_time_game_offset": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].finished": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].h2h_ko_matches_created": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].highest_score": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].highest_scoring_entry": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].is_current": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].is_next": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].is_previous": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].most_captained": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].most_selected": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].most_transferred_in": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].most_vice_captained": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "events[].overrides": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "events[].overrides.element_types": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "events[].overrides.pick_multiplier": {
+      "types": [],
+      "nullable": true
+    },
+    "events[].overrides.rules": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "events[].overrides.scoring": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "events[].ranked_count": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].release_time": {
+      "types": [],
+      "nullable": true
+    },
+    "events[].released": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "events[].top_element": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "events[].top_element_info": {
+      "types": [
+        "object"
+      ],
+      "nullable": true
+    },
+    "events[].top_element_info.id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].top_element_info.points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "events[].transfers_made": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.rules": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.cup_qualifying_method": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.cup_start_event_id": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.cup_stop_event_id": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.cup_type": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.element_sell_at_purchase_price": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.featured_entries": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "game_config.rules.league_h2h_tiebreak_stats": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 2,
+        "max": 2
+      }
+    },
+    "game_config.rules.league_h2h_tiebreak_stats[]": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_join_private_max": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_join_public_max": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_ko_first_instead_of_random": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_max_ko_rounds_private_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_max_size_private_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_max_size_public_classic": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_max_size_public_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_points_h2h_draw": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_points_h2h_lose": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_points_h2h_win": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.league_prefix_public": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.max_extra_free_transfers": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.percentile_ranks": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    "game_config.rules.percentile_ranks[]": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.squad_special_max": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.squad_special_min": {
+      "types": [],
+      "nullable": true
+    },
+    "game_config.rules.squad_squadplay": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.squad_squadsize": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.squad_team_limit": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.squad_total_spend": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.stats_form_days": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.sys_vice_captain_enabled": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.transfers_cap": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.transfers_sell_on_fee": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.ui_currency_multiplier": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.ui_special_shirt_exclusions": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "game_config.rules.ui_use_special_shirts": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_config.rules.underdog_differential": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.assists": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.bonus": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.bps": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clean_sheets": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clean_sheets.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clean_sheets.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clean_sheets.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clean_sheets.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.clearances_blocks_interceptions": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.creativity": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.defensive_contribution": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.defensive_contribution.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.defensive_contribution.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.defensive_contribution.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.defensive_contribution.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.expected_assists": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.expected_goal_involvements": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.expected_goals": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.expected_goals_conceded": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_conceded": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_conceded.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_conceded.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_conceded.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_conceded.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_scored": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_scored.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_scored.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_scored.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.goals_scored.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.ict_index": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.influence": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.long_play": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_clean_sheets": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_clean_sheets.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_clean_sheets.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_clean_sheets.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_clean_sheets.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_draw": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_draw.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_draw.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_draw.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_draw.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_goals_scored": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_goals_scored.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_goals_scored.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_goals_scored.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_goals_scored.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_loss": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_draw": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_draw.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_draw.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_draw.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_draw.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_win": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_win.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_win.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_win.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_underdog_win.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_win": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_win.DEF": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_win.FWD": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_win.GKP": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.mng_win.MID": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.own_goals": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.penalties_missed": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.penalties_saved": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.recoveries": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.red_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.saves": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.short_play": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.special_multiplier": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.starts": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.tackles": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.threat": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.scoring.yellow_cards": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_config.settings": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.settings.entry_per_event": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_config.settings.price_change_deadlines": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 3,
+        "max": 3
+      }
+    },
+    "game_config.settings.price_change_deadlines[]": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_config.settings.static_content_url": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_config.settings.timezone": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_config.status": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_config.status.price_change_last_updated": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_settings": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "game_settings.cup_qualifying_method": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.cup_start_event_id": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.cup_stop_event_id": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.cup_type": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.element_sell_at_purchase_price": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_settings.featured_entries": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "game_settings.league_h2h_tiebreak_stats": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 2,
+        "max": 2
+      }
+    },
+    "game_settings.league_h2h_tiebreak_stats[]": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_join_private_max": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_join_public_max": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_ko_first_instead_of_random": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_max_ko_rounds_private_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_max_size_private_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_max_size_public_classic": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_max_size_public_h2h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_points_h2h_draw": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_points_h2h_lose": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_points_h2h_win": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.league_prefix_public": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_settings.max_extra_free_transfers": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.percentile_ranks": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    "game_settings.percentile_ranks[]": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.squad_special_max": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.squad_special_min": {
+      "types": [],
+      "nullable": true
+    },
+    "game_settings.squad_squadplay": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.squad_squadsize": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.squad_team_limit": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.squad_total_spend": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.stats_form_days": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.sys_vice_captain_enabled": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_settings.timezone": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "game_settings.transfers_cap": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.transfers_sell_on_fee": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.ui_currency_multiplier": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "game_settings.ui_special_shirt_exclusions": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "game_settings.ui_use_special_shirts": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "game_settings.underdog_differential": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "phases": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 11,
+        "max": 11
+      }
+    },
+    "phases[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "phases[].highest_score": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "phases[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "phases[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "phases[].start_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "phases[].stop_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 20,
+        "max": 20
+      }
+    },
+    "teams[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "teams[].code": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].draw": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].form": {
+      "types": [],
+      "nullable": true
+    },
+    "teams[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].link_url": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "teams[].loss": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "teams[].played": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].position": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].pulse_id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].short_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "teams[].strength": {
+      "types": [],
+      "nullable": true
+    },
+    "teams[].strength_attack_away": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].strength_attack_home": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].strength_defence_away": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].strength_defence_home": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].strength_overall_away": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].strength_overall_home": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "teams[].team_division": {
+      "types": [],
+      "nullable": true
+    },
+    "teams[].unavailable": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "teams[].win": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "total_players": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

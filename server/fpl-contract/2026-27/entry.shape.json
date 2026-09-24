@@ -1,0 +1,583 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "club_badge_src": {
+      "types": [],
+      "nullable": true
+    },
+    "current_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "entered_events": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 5,
+        "max": 5
+      }
+    },
+    "entered_events[]": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "favourite_team": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "joined_time": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "kit": {
+      "types": [],
+      "nullable": true
+    },
+    "last_deadline_bank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "last_deadline_total_transfers": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "last_deadline_value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.classic": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 2,
+        "max": 2
+      }
+    },
+    "leagues.classic[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 2,
+        "max": 2
+      }
+    },
+    "leagues.classic[].active_phases[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].entry_percentile_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].last_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].league_id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].phase": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].rank_count": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].rank_sort": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].active_phases[].total": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].admin_entry": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.classic[].closed": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].created": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].cup_league": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.classic[].cup_qualified": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.classic[].entry_can_admin": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].entry_can_invite": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].entry_can_leave": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].entry_last_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].entry_percentile_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].entry_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].featured_entry_ids": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.classic[].has_cup": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].league_type": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].max_entries": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.classic[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].rank": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.classic[].rank_count": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].scoring": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].short_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.classic[].start_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.cup": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.cup.cup_league": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.cup.matches": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.cup.status": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.cup.status.qualification_event": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.cup.status.qualification_numbers": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.cup.status.qualification_rank": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.cup.status.qualification_state": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.cup_matches": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.event": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.h2h": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 2,
+        "max": 2
+      }
+    },
+    "leagues.h2h[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].active_phases": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.h2h[].admin_entry": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].closed": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].created": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].cup_league": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].cup_qualified": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].entry_can_admin": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].entry_can_invite": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].entry_can_leave": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].entry_last_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].entry_percentile_rank": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].entry_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].featured_entry_ids": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 0
+      }
+    },
+    "leagues.h2h[].has_cup": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].league_type": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].max_entries": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].rank": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].rank_count": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].scoring": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "leagues.h2h[].short_name": {
+      "types": [],
+      "nullable": true
+    },
+    "leagues.h2h[].start_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "name_change_blocked": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "player_first_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "player_last_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "player_region_id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "player_region_iso_code_long": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "player_region_iso_code_short": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "player_region_name": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "started_event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "summary_event_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "summary_event_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "summary_overall_points": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "summary_overall_rank": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "years_active": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    }
+  }
+}

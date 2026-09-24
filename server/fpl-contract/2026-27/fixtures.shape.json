@@ -1,0 +1,195 @@
+{
+  "samples": 2,
+  "paths": {
+    "<root>": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 10,
+        "max": 380
+      }
+    },
+    "[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "[].code": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].finished": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "[].finished_provisional": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "[].id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].kickoff_time": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "[].minutes": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].provisional_start_time": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "[].pulse_id": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].started": {
+      "types": [
+        "boolean"
+      ],
+      "nullable": false
+    },
+    "[].stats": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 11
+      }
+    },
+    "[].stats[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "[].stats[].a": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 16
+      }
+    },
+    "[].stats[].a[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "[].stats[].a[].element": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].stats[].a[].value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].stats[].h": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 0,
+        "max": 17
+      }
+    },
+    "[].stats[].h[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "[].stats[].h[].element": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].stats[].h[].value": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].stats[].identifier": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    },
+    "[].team_a": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].team_a_difficulty": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].team_a_score": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    },
+    "[].team_h": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].team_h_difficulty": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].team_h_score": {
+      "types": [
+        "number"
+      ],
+      "nullable": true
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "samples": 1,
+  "paths": {
+    "<root>": {
+      "types": [
+        "array"
+      ],
+      "nullable": false,
+      "length": {
+        "min": 4,
+        "max": 4
+      }
+    },
+    "[]": {
+      "types": [
+        "object"
+      ],
+      "nullable": false
+    },
+    "[].element_in": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].element_in_cost": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].element_out": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].element_out_cost": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].entry": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].event": {
+      "types": [
+        "number"
+      ],
+      "nullable": false
+    },
+    "[].time": {
+      "types": [
+        "string"
+      ],
+      "nullable": false
+    }
+  }
+}
