@@ -77,6 +77,7 @@ const bootstrap = await fpl.getBootstrapStatic();
 | `getEntry(entryId)` | `/entry/{id}/` |
 | `getEntryHistory(entryId)` | `/entry/{id}/history/` |
 | `getEntryPicks(entryId, event)` | `/entry/{id}/event/{event}/picks/` |
+| `getEntryTransfers(entryId)` | `/entry/{id}/transfers/` |
 | `getClassicLeagueStandings(leagueId, { page? })` | `/leagues-classic/{id}/standings/?page_standings=N` |
 
 Pipeline for each call: cache and single-flight, then retry, then circuit breaker, then rate limiter, then `fetch` with a timeout, then boundary validation. All settings can be overridden through `createFplClient(options)`.

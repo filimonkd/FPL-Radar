@@ -26,6 +26,7 @@ export const DEFAULT_TTLS = Object.freeze({
   entry: 5 * 60_000,
   entryHistory: 5 * 60_000,
   entryPicks: 5 * 60_000,
+  entryTransfers: 5 * 60_000,
   classicLeagueStandings: 2 * 60_000,
 });
 
@@ -174,6 +175,9 @@ export function createFplClient(options = {}) {
 
     getEntryPicks: async (entryId, event) =>
       request('entryPicks', `/entry/${positiveInt('entryId', entryId)}/event/${positiveInt('event', event)}/picks/`),
+
+    getEntryTransfers: async (entryId) =>
+      request('entryTransfers', `/entry/${positiveInt('entryId', entryId)}/transfers/`),
 
     getClassicLeagueStandings: async (leagueId, { page = 1 } = {}) =>
       request(

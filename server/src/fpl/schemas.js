@@ -99,6 +99,17 @@ export const entryPicks = t.object({
   entry_history: t.object({ event: t.int(), points: t.int() }),
 });
 
+// Full transfer list for an entry. The mapper de-duplicates on time + in + out
+// (architecture v0.3 §4), so those are the fields validated here.
+export const entryTransfers = t.array(
+  t.object({
+    element_in: t.int(),
+    element_out: t.int(),
+    event: t.int(),
+    time: t.string(),
+  }),
+);
+
 export const classicLeagueStandings = t.object({
   league: t.object({ id: t.int(), name: t.string() }),
   standings: t.object({

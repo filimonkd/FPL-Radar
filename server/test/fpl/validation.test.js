@@ -93,6 +93,13 @@ const cases = [
     invalid: { picks: [], entry_history: null },
   },
   {
+    name: 'entry transfers',
+    call: (c) => c.getEntryTransfers(99),
+    url: '/entry/99/transfers/',
+    valid: [{ element_in: 1, element_out: 2, event: 3, time: '2000-01-01T00:00:00Z' }],
+    invalid: [{ element_in: 1, element_out: 2, event: 3 }],
+  },
+  {
     name: 'classic league standings',
     call: (c) => c.getClassicLeagueStandings(314, { page: 2 }),
     url: '/leagues-classic/314/standings/?page_standings=2',
