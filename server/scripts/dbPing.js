@@ -1,9 +1,18 @@
 // npm run db:ping — verifies the local MongoDB is the rs0 replica set on server 8.0.x.
 import mongoose from 'mongoose';
+import { envSchema } from '../src/config/env.js';
+import { envSourceHint, describeValue } from '../src/config/envSource.js';
 
 const uri = process.env.MONGODB_URI;
+const hint = envSourceHint('MONGODB_URI');
 if (!uri) {
-  console.error('MONGODB_URI is required');
+  console.error('MONGODB_URI is required (copy .env.example to .env).');
+  process.exit(1);
+}
+const check = envSchema.shape.MONGODB_URI.safeParse(uri);
+if (!check.success) {
+  console.error(`MONGODB_URI ${check.error.issues[0].message}; the value in use ${describeValue(uri)}.`);
+  if (hint) console.error(hint);
   process.exit(1);
 }
 

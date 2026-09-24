@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DEFAULT_FPL_API_BASE_URL, fplBaseUrlSchema } from '../fpl/baseUrl.js';
+import { envSourceHint } from './envSource.js';
 
 // Environment contract (architecture v0.3 §17.4). Parsed once from process.env.
 
@@ -42,6 +43,8 @@ export function loadEnv() {
   } catch (err) {
     if (!(err instanceof EnvError)) throw err;
     console.error(err.message);
+    const names = [...new Set(err.problems.map((p) => p.split(' ')[0]))];
+    for (const hint of names.map((n) => envSourceHint(n)).filter(Boolean)) console.error(`  note: ${hint}`);
     process.exit(1);
   }
 }
