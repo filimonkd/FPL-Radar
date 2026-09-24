@@ -9,6 +9,13 @@ const ANALYTICS_DIR = fileURLToPath(new URL('../../src/analytics/', import.meta.
 
 const FORBIDDEN_IMPORT = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]((?:mongoose|mongodb)(?:\/[^'"]*)?|(?:\.\.\/)+(?:db|models|repositories)(?:\/[^'"]*)?)['"]/g;
 const PROCESS_ENV = /\bprocess\s*\.\s*env\b|\bprocess\s*\[\s*['"]env['"]\s*\]/;
+// Analytics must be deterministic: `now` is passed in (v0.2 §14).
+const IMPURE = [
+  [/\bDate\.now\s*\(/, 'reads the clock (Date.now)'],
+  [/new\s+Date\s*\(\s*\)/, 'reads the clock (new Date())'],
+  [/\bperformance\.now\s*\(/, 'reads the clock (performance.now)'],
+  [/\bMath\.random\s*\(/, 'uses Math.random'],
+];
 
 async function sourceFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true, recursive: true });
@@ -24,6 +31,7 @@ export function violations(rawSource) {
   const source = stripComments(rawSource);
   const found = [...source.matchAll(FORBIDDEN_IMPORT)].map((m) => `imports ${m[1]}`);
   if (PROCESS_ENV.test(source)) found.push('reads process.env');
+  for (const [re, what] of IMPURE) if (re.test(source)) found.push(what);
   return found;
 }
 
@@ -35,6 +43,10 @@ test('detector flags every forbidden dependency', () => {
   assert.deepEqual(violations("export * from '../repositories/groupRepo.js';"), ['imports ../repositories/groupRepo.js']);
   assert.deepEqual(violations('const u = process.env.MONGODB_URI;'), ['reads process.env']);
   assert.deepEqual(violations("import { sum } from './math.js';"), []);
+  assert.deepEqual(violations('const t = Date.now();'), ['reads the clock (Date.now)']);
+  assert.deepEqual(violations('const t = new Date();'), ['reads the clock (new Date())']);
+  assert.deepEqual(violations('const d = new Date(value);'), []);
+  assert.deepEqual(violations('const r = Math.random();'), ['uses Math.random']);
   assert.deepEqual(violations('// never read process.env here\n/* or import mongoose */'), []);
 });
 

@@ -125,7 +125,23 @@ npm run fpl:smoke -- --league <leagueA> --league <leagueB> --entry <hitTaker> [-
 - The job's result matches the smoke exit code (0/1/2/3).
 - It has read-only permissions and **never commits**. Review the artifact, then commit samples deliberately in a normal PR.
 
-## Test
+## Analytics engine (Step 3, `server/src/analytics`)
+
+Pure functions with no I/O, database, clock or `process.env` access; `test/unit/architecture.test.js` enforces this. The contracts follow architecture v0.2 §14:
+
+| Module | Exports |
+|---|---|
+| `reconcile.js` | `reconcileSeason`: gross/net proof per row, statuses `RECONCILED`, `RECONCILED_NO_COST`, `MISMATCH`, `SEMANTICS_CONFLICT`, `SOURCE_DISAGREEMENT`, `INCOMPLETE` |
+| `eventState.js` | `deriveEventState`, `canFinalize` (returns every failing reason) |
+| `eligibility.js` | `selectEligible` (`EXCLUDED` > `JOINED_LATER` > `NO_TEAM`; unsynced members stay eligible and block) |
+| `ranking.js`, `tieBreakers.js` | `competitionRanks`, `resolvePositions`, `TIE_BREAKERS` (entryId only orders the table, never picks a winner) |
+| `winner.js` | `computeGwResult`: `PROVISIONAL`/`BLOCKED`, winners, trace, rows, `inputsHash`, `ENGINE_VERSION` |
+| `effectiveSquad.js` | `deriveEffectiveSquad`: auto-subs, bench boost, triple captain, captain/vice failure, FPL multiplier cross-check |
+| `ownership.js` | `computeOwnership`: picked vs effective EO, denominators, missing managers |
+| `chips.js` | `chipAvailability`, `validateChipRules` |
+
+Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/utils/canonical.js` (canonical JSON + SHA-256; re-exported from `src/db/canonical.js`) and `src/audit/hashChain.js` (append-only chain build/verify). `test/contract/engineOnSamples.test.js` runs the engine on the real 2026-27 samples.
+
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
