@@ -1,6 +1,6 @@
 import { FplError, FplErrorKind, classifyStatus, parseRetryAfter } from './errors.js';
 import { withRetry, DEFAULT_RETRY } from './retry.js';
-import { RateLimiter, DEFAULT_RATE_LIMIT } from './rateLimiter.js';
+import { createRateLimiter, DEFAULT_RATE_LIMIT } from './rateLimiter.js';
 import { CircuitBreaker, DEFAULT_BREAKER } from './circuitBreaker.js';
 import { TtlCache } from './cache.js';
 import { validate } from './validate.js';
@@ -10,7 +10,8 @@ import * as schemas from './schemas.js';
 // validates and caches in memory.
 //
 // Request pipeline (per call):
-//   cache / single-flight -> retry( circuit breaker( rate limit -> fetch with timeout ) ) -> validate
+//   cache / single-flight (lru-cache) -> retry( circuit breaker( rate limit (bottleneck) -> fetch with timeout ) )
+//   -> validate (zod)
 //
 // Returned objects may be shared with the cache: treat them as read-only.
 
@@ -68,16 +69,19 @@ export function createFplClient(options = {}) {
     }
   };
 
-  const limiter = new RateLimiter({ ...DEFAULT_RATE_LIMIT, ...rateLimit }, { now, sleep });
+  const limiter = createRateLimiter({ ...DEFAULT_RATE_LIMIT, ...rateLimit });
   const breaker = new CircuitBreaker(
     { ...DEFAULT_BREAKER, ...breakerOptions },
     { now, onStateChange: (change) => emit({ type: 'circuit_state', ...change }) },
   );
   const cache = new TtlCache({ maxEntries: maxCacheEntries, now });
 
-  async function fetchOnce(path, attempt) {
-    await limiter.acquire();
+  // The rate limiter gates when each attempt starts; the timeout starts with the request.
+  function fetchOnce(path, attempt) {
+    return limiter.schedule(() => performRequest(path, attempt));
+  }
 
+  async function performRequest(path, attempt) {
     const url = `${baseUrl}${path}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -141,14 +145,14 @@ export function createFplClient(options = {}) {
             emit({ type: 'retry', path, attempt, delayMs, errorKind: error.kind, status: error.status }),
         });
 
-        const issues = validate(schemas[name], body);
-        if (issues.length > 0) {
+        const { ok, data, issues } = validate(schemas[name], body);
+        if (!ok) {
           throw new FplError(FplErrorKind.VALIDATION, `FPL ${name} response failed validation`, {
             url: `${baseUrl}${path}`,
             issues,
           });
         }
-        return body;
+        return data;
       });
       if (cached) emit({ type: 'cache_hit', path });
       return value;
@@ -190,5 +194,7 @@ export function createFplClient(options = {}) {
       return breaker.state;
     },
     clearCache: () => cache.clear(),
+    // Stops the rate limiter; queued requests are dropped.
+    close: () => limiter.stop(),
   };
 }

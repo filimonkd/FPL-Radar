@@ -1,25 +1,24 @@
-import { env } from './config/env.js';
+import { loadEnv } from './config/env.js';
 import { connectDb, disconnectDb, getDbStatus } from './db/connection.js';
 import { createApp } from './app.js';
+import { version } from './version.js';
 
-if (!env.valid) {
-  console.error('Invalid environment:\n  - ' + env.errors.join('\n  - '));
-  process.exit(1);
-}
+const config = loadEnv();
 
-const { port, mongodbUri } = env.config;
+await connectDb(config.MONGODB_URI, config.MONGODB_DB);
+console.log(`MongoDB connected (db: ${config.MONGODB_DB})`);
 
-await connectDb(mongodbUri);
-console.log('MongoDB connected');
-
-const app = createApp({ env, getDbStatus });
-const server = app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+const app = createApp({ config, version, getDbStatus });
+const server = app.listen(config.PORT, () => {
+  console.log(`Server listening on http://localhost:${config.PORT}`);
 });
 
+let shuttingDown = false;
 async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.log(`${signal} received, shutting down`);
-  server.close();
+  await new Promise((resolve) => server.close(resolve));
   await disconnectDb();
   process.exit(0);
 }

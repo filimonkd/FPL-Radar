@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyStatus, parseRetryAfter, FplError } from '../../src/fpl/errors.js';
-import { createFplClient, FplErrorKind } from '../../src/fpl/index.js';
+import { classifyStatus, parseRetryAfter, FplError } from '../../../src/fpl/errors.js';
+import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
 import { fakeClock, jsonResponse, scriptedFetch, testOptions } from './helpers.js';
 
 test('classifies HTTP statuses', () => {

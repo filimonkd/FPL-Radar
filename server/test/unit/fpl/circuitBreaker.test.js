@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CircuitBreaker, CircuitState } from '../../src/fpl/circuitBreaker.js';
-import { FplError, FplErrorKind } from '../../src/fpl/errors.js';
-import { createFplClient } from '../../src/fpl/index.js';
+import { CircuitBreaker, CircuitState } from '../../../src/fpl/circuitBreaker.js';
+import { FplError, FplErrorKind } from '../../../src/fpl/errors.js';
+import { createFplClient } from '../../../src/fpl/index.js';
 import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
 
 const upstream = () => new FplError(FplErrorKind.UPSTREAM_UNAVAILABLE, 'down');

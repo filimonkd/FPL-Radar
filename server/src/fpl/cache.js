@@ -1,68 +1,47 @@
-// In-memory TTL cache with LRU eviction and single-flight de-duplication.
-// Process-local by design; persistence belongs to later steps.
+import { LRUCache } from 'lru-cache';
+
+// Thin adapter over lru-cache 11: per-entry TTL, LRU eviction and single-flight
+// loading via LRUCache#fetch. Failures are never cached. Process-local by design.
 
 export class TtlCache {
-  #entries = new Map(); // key -> { value, expiresAt }
-  #inFlight = new Map(); // key -> Promise
+  #lru;
 
-  constructor({ maxEntries = 500, now = Date.now } = {}) {
-    this.maxEntries = maxEntries;
-    this.now = now;
+  constructor({ maxEntries = 500, now = () => performance.now() } = {}) {
+    this.#lru = new LRUCache({
+      max: maxEntries,
+      perf: { now },
+      ttlResolution: 0, // always read the clock; entries expire exactly at ttl
+      fetchMethod: async (_key, _stale, { context }) => context(),
+    });
   }
 
   get(key) {
-    const entry = this.#entries.get(key);
-    if (!entry) return undefined;
-    if (entry.expiresAt <= this.now()) {
-      this.#entries.delete(key);
-      return undefined;
-    }
-    // Refresh recency for LRU.
-    this.#entries.delete(key);
-    this.#entries.set(key, entry);
-    return entry.value;
+    return this.#lru.get(key);
   }
 
   set(key, value, ttlMs) {
     if (!(ttlMs > 0)) return;
-    this.#entries.delete(key);
-    this.#entries.set(key, { value, expiresAt: this.now() + ttlMs });
-    while (this.#entries.size > this.maxEntries) {
-      this.#entries.delete(this.#entries.keys().next().value);
-    }
+    this.#lru.set(key, value, { ttl: ttlMs });
   }
 
   delete(key) {
-    this.#entries.delete(key);
+    this.#lru.delete(key);
   }
 
   clear() {
-    this.#entries.clear();
+    this.#lru.clear();
   }
 
   get size() {
-    return this.#entries.size;
+    return this.#lru.size;
   }
 
   // Returns a cached value, or runs loader once for concurrent callers of the same key.
-  // Failures are never cached.
+  // ttlMs <= 0 disables caching for the call (no storage, no de-duplication).
   async getOrLoad(key, ttlMs, loader) {
-    const hit = this.get(key);
-    if (hit !== undefined) return { value: hit, cached: true };
-
-    let pending = this.#inFlight.get(key);
-    if (!pending) {
-      pending = (async () => {
-        try {
-          const value = await loader();
-          this.set(key, value, ttlMs);
-          return value;
-        } finally {
-          this.#inFlight.delete(key);
-        }
-      })();
-      this.#inFlight.set(key, pending);
-    }
-    return { value: await pending, cached: false };
+    if (!(ttlMs > 0)) return { value: await loader(), cached: false };
+    const status = {};
+    const value = await this.#lru.fetch(key, { ttl: ttlMs, context: loader, status });
+    return { value, cached: status.fetch === 'hit' };
   }
 }

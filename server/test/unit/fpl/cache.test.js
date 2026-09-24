@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { TtlCache } from '../../src/fpl/cache.js';
-import { createFplClient, FplErrorKind } from '../../src/fpl/index.js';
+import { TtlCache } from '../../../src/fpl/cache.js';
+import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
 import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
 
 test('returns values until the TTL expires', () => {
   const clock = fakeClock();
   const cache = new TtlCache({ now: clock.now });
   cache.set('k', 'v', 1000);
-  clock.advance(999);
+  clock.advance(1000); // lru-cache: fresh while age <= ttl
   assert.equal(cache.get('k'), 'v');
   clock.advance(1);
   assert.equal(cache.get('k'), undefined);
@@ -63,7 +63,7 @@ test('client serves repeated calls from cache within TTL', async () => {
   assert.equal(fetch.calls.length, 1);
   assert.equal(events.filter((e) => e.type === 'cache_hit').length, 1);
 
-  clock.advance(60_000);
+  clock.advance(60_001);
   await client.getBootstrapStatic();
   assert.equal(fetch.calls.length, 2);
 });

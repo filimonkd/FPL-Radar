@@ -50,7 +50,7 @@ export function testOptions(clock, overrides = {}) {
     now: clock.now,
     sleep: clock.sleep,
     random: () => 1,
-    rateLimit: { capacity: 1000, refillPerSecond: 1000 },
+    rateLimit: { capacity: 1000, refillPerSecond: 10 },
     ...overrides,
   };
 }

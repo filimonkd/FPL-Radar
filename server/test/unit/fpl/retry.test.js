@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { withRetry, backoffDelay } from '../../src/fpl/retry.js';
-import { createFplClient, FplErrorKind } from '../../src/fpl/index.js';
+import { withRetry, backoffDelay } from '../../../src/fpl/retry.js';
+import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
 import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
 
 const retryable = () => Object.assign(new Error('boom'), { retryable: true });

@@ -1,35 +1,45 @@
-// Environment loading and validation.
-// Values come from process.env (populated by `node --env-file-if-exists=../.env`).
-// Validation never throws at import time so /api/health can report an invalid env.
+import { z } from 'zod';
 
-const NODE_ENVS = ['development', 'test', 'production'];
+// Environment contract (architecture v0.3 §17.4). Parsed once from process.env.
 
-export function validateEnv(source = process.env) {
-  const errors = [];
+export const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  MONGODB_URI: z
+    .string({ error: 'is required' })
+    .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
+  MONGODB_DB: z.string({ error: 'is required' }).regex(/^[A-Za-z0-9_-]{1,63}$/, 'must be a valid database name'),
+  JWT_SECRET: z.string({ error: 'is required' }).min(1, 'must not be empty'),
+});
 
-  const nodeEnv = source.NODE_ENV ?? 'development';
-  if (!NODE_ENVS.includes(nodeEnv)) {
-    errors.push(`NODE_ENV must be one of ${NODE_ENVS.join(', ')}`);
+export class EnvError extends Error {
+  constructor(problems) {
+    super(`Invalid environment:\n${problems.map((p) => `  - ${p}`).join('\n')}`);
+    this.name = 'EnvError';
+    this.problems = problems;
   }
-
-  const rawPort = source.PORT ?? '4000';
-  const port = Number(rawPort);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    errors.push('PORT must be an integer between 1 and 65535');
-  }
-
-  const mongodbUri = source.MONGODB_URI;
-  if (!mongodbUri) {
-    errors.push('MONGODB_URI is required');
-  } else if (!/^mongodb(\+srv)?:\/\//.test(mongodbUri)) {
-    errors.push('MONGODB_URI must start with mongodb:// or mongodb+srv://');
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-    config: Object.freeze({ nodeEnv, port, mongodbUri }),
-  };
 }
 
-export const env = validateEnv();
+// Pure parse: returns a frozen config or throws EnvError listing every bad variable.
+export function parseEnv(source) {
+  const result = envSchema.safeParse(source);
+  if (!result.success) {
+    throw new EnvError(result.error.issues.map((i) => `${i.path.join('.')} ${i.message}`));
+  }
+  return Object.freeze(result.data);
+}
+
+let cached;
+
+// Parses process.env once. On failure prints the readable list and exits.
+export function loadEnv() {
+  if (cached) return cached;
+  try {
+    cached = parseEnv(process.env);
+    return cached;
+  } catch (err) {
+    if (!(err instanceof EnvError)) throw err;
+    console.error(err.message);
+    process.exit(1);
+  }
+}

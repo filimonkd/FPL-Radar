@@ -1,34 +1,38 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { t, validate } from '../../src/fpl/validate.js';
-import { createFplClient, FplErrorKind } from '../../src/fpl/index.js';
+import { z } from 'zod';
+import { validate } from '../../../src/fpl/validate.js';
+import { createFplClient, FplErrorKind } from '../../../src/fpl/index.js';
 import { fakeClock, jsonResponse, scriptedFetch, minimalBootstrap, testOptions } from './helpers.js';
 
+const paths = (result) => result.issues.map((i) => i.split(':')[0]);
+
 test('validator reports paths for type mismatches and missing fields', () => {
-  const schema = t.object({ id: t.int(), tags: t.array(t.string()), meta: t.object({ ok: t.bool() }) });
-  assert.deepEqual(validate(schema, { id: 1, tags: ['a'], meta: { ok: true } }), []);
-  assert.deepEqual(validate(schema, { id: '1', tags: ['a', 2], meta: {} }), [
-    'id: expected integer, got string',
-    'tags[1]: expected string, got number',
-    'meta.ok: missing',
-  ]);
-  assert.deepEqual(validate(schema, []), ['<root>: expected object, got array']);
+  const schema = z.looseObject({ id: z.int(), tags: z.array(z.string()), meta: z.looseObject({ ok: z.boolean() }) });
+  assert.deepEqual(validate(schema, { id: 1, tags: ['a'], meta: { ok: true } }).issues, []);
+  const bad = validate(schema, { id: '1', tags: ['a', 2], meta: {} });
+  assert.equal(bad.ok, false);
+  assert.deepEqual(paths(bad), ['id', 'tags[1]', 'meta.ok']);
+  assert.deepEqual(paths(validate(schema, [])), ['<root>']);
 });
 
-test('validator allows nullables and unknown fields', () => {
-  const schema = t.object({ kickoff: t.nullable(t.string()) });
-  assert.deepEqual(validate(schema, { kickoff: null, extra: 1 }), []);
-  assert.deepEqual(validate(schema, { kickoff: 5 }), ['kickoff: expected string, got number']);
+test('validator allows nullables and keeps unknown fields', () => {
+  const schema = z.looseObject({ kickoff: z.string().nullable() });
+  const result = validate(schema, { kickoff: null, extra: 1 });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.data, { kickoff: null, extra: 1 });
+  assert.deepEqual(paths(validate(schema, { kickoff: 5 })), ['kickoff']);
 });
 
 test('validator caps the number of reported issues', () => {
-  const issues = validate(t.array(t.int()), Array.from({ length: 100 }, () => 'x'));
-  assert.equal(issues.length, 20);
+  const result = validate(z.array(z.int()), Array.from({ length: 100 }, () => 'x'));
+  assert.equal(result.issues.length, 20);
 });
 
 test('validator rejects non-finite numbers and non-integer ints', () => {
-  assert.equal(validate(t.number(), NaN).length, 1);
-  assert.equal(validate(t.int(), 1.5).length, 1);
+  assert.equal(validate(z.number(), NaN).ok, false);
+  assert.equal(validate(z.number(), Infinity).ok, false);
+  assert.equal(validate(z.int(), 1.5).ok, false);
 });
 
 // Synthetic payloads matching each schema, keyed by client call.

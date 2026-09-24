@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
 
+// Minimal Step 0 connection used by /api/health. The full §11 option set
+// (pool size, bufferCommands, autoIndex, ...) arrives with Step 4.
+
 const READY_STATES = ['disconnected', 'connected', 'connecting', 'disconnecting'];
 
-export async function connectDb(uri) {
+export async function connectDb(uri, dbName) {
   mongoose.set('strictQuery', true);
-  await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 10_000 });
   return mongoose.connection;
 }
 
