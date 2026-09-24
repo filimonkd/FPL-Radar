@@ -101,10 +101,25 @@ Validation uses zod 4 loose objects and checks only the fields the app relies on
 
 **Unverified:** FPL publishes no API documentation. The endpoint paths and response shapes above come from community usage. They have not been checked against live responses from this repo's CI or dev environment. The rate-limit, retry and TTL defaults are app policy, not FPL guidance.
 
+## FPL smoke test (Step 2)
+
+Checks every FPL assumption against real responses before the engine is built (architecture v0.2 §11, inherited by v0.3). Run it from a machine that can reach `fantasy.premierleague.com`:
+
+```bash
+npm run fpl:smoke -- --league <leagueA> --league <leagueB> --entry <hitTaker> [--entry <id> ...] [--gw <n>] [--update-baseline]
+```
+
+- Pass both private leagues, and at least one entry that has taken a transfer hit (`event_transfers_cost > 0`) this season, so the points semantics can be proven.
+- `--gw` defaults to the latest gameweek with `data_checked = true`.
+- Writes `server/fpl-contract/<season>/smoke-report.md` every time. The anonymized `*.sample.json` and `*.shape.json` files are written on the first recording, or with `--update-baseline`. Samples are only ever written from real 2xx JSON responses, and the run refuses to write them if any real name or ID survived anonymization. The report only uses aliases (`E1`, `L1`, ...).
+- Exit codes: `0` all pass · `1` schema break · `2` an assumption failed or is unverified · `3` network or blocked.
+- `V3` (sum of engine effective multipliers × points = gross) stays UNVERIFIED until Step 3 builds the engine. `P5` records the same identity using FPL's own multipliers.
+- Private league standings needing a login are classified `AUTH_REQUIRED`, and the group must use manual entry IDs. The smoke test never logs in to FPL.
+
 ## Test
 
 ```bash
-npm test                 # unit tests (server/test/unit), no database or network needed
+npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
 npm run test:integration # server/test/integration (none yet; MongoMemoryReplSet arrives with Step 4)
 ```
 

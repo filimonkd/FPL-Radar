@@ -19,7 +19,8 @@
     "test:integration": "npm run test:integration --workspaces --if-present",
     "db:up": "docker compose up -d --wait mongo",
     "db:down": "docker compose down",
-    "db:ping": "npm run db:ping -w server"
+    "db:ping": "npm run db:ping -w server",
+    "fpl:smoke": "npm run fpl:smoke -w server --"
   },
   "devDependencies": {
     "concurrently": "10.0.5"

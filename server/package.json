@@ -10,9 +10,10 @@
   "scripts": {
     "dev": "node --watch --env-file=../.env src/server.js",
     "start": "node --env-file-if-exists=../.env src/server.js",
-    "test": "node --test \"test/unit/**/*.test.js\"",
+    "test": "node --test \"test/unit/**/*.test.js\" \"test/contract/**/*.test.js\"",
     "test:integration": "node --test \"test/integration/**/*.test.js\"",
-    "db:ping": "node --env-file-if-exists=../.env scripts/dbPing.js"
+    "db:ping": "node --env-file-if-exists=../.env scripts/dbPing.js",
+    "fpl:smoke": "node scripts/fplSmoke.js"
   },
   "dependencies": {
     "bottleneck": "2.19.5",

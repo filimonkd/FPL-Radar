@@ -42,11 +42,13 @@ test('serves concurrent waiters in FIFO order', async () => {
 });
 
 test('tokens refill over idle time but never exceed capacity', async () => {
-  const limiter = createRateLimiter({ capacity: 2, refillPerSecond: 50 });
+  // Slow refill (one token per 200ms) so the drained state is observable
+  // even on a loaded machine; then wait long enough for 3+ refills.
+  const limiter = createRateLimiter({ capacity: 2, refillPerSecond: 5 });
   await acquire(limiter);
   await acquire(limiter);
   assert.equal(await limiter.availableTokens(), 0);
-  await new Promise((r) => setTimeout(r, 200)); // room for ~10 refills
+  await new Promise((r) => setTimeout(r, 700)); // room for 3 refills, capped at 2
   assert.equal(await limiter.availableTokens(), 2);
   await limiter.stop();
 });
