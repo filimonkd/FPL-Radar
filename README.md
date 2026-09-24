@@ -76,8 +76,8 @@ const bootstrap = await fpl.getBootstrapStatic();
 |---|---|
 | `getBootstrapStatic()` | `/bootstrap-static/` |
 | `getFixtures({ event? })` | `/fixtures/`, `/fixtures/?event=N` |
+| `getEventStatus()` | `/event-status/` |
 | `getEventLive(event)` | `/event/{event}/live/` |
-| `getElementSummary(elementId)` | `/element-summary/{id}/` |
 | `getEntry(entryId)` | `/entry/{id}/` |
 | `getEntryHistory(entryId)` | `/entry/{id}/history/` |
 | `getEntryPicks(entryId, event)` | `/entry/{id}/event/{event}/picks/` |
@@ -92,7 +92,7 @@ Pipeline for each call: cache and single-flight (lru-cache), then retry, then ci
 | Retry | 3 attempts, exponential backoff with full jitter (500 ms base, 8 s cap), honours `Retry-After` on 429. Retries only timeout, network, 429 and 5xx. |
 | Rate limit | bottleneck reservoir as a token bucket: burst 5, then 2 req/s, FIFO |
 | Circuit breaker | Opens after 5 consecutive upstream failures (timeout/network/429/5xx), stays open 30 s, then allows a single half-open probe. 404 and validation errors do not count. |
-| Cache | lru-cache: in-memory TTL + LRU (500 entries), single-flight via `fetch`. TTLs: 60 s for live, 2 min for standings, 5–10 min for others. Failures are never cached. |
+| Cache | lru-cache: in-memory TTL + LRU (500 entries), single-flight via `fetch`. TTLs: 60 s for live and event status, 2 min for standings, 5 min for others. Failures are never cached. |
 | Logging hook | `onEvent({ type })` with `request`, `response`, `retry`, `cache_hit`, `circuit_state`, `error`. Exceptions thrown by the hook are swallowed. |
 
 Errors are `FplError` with a `kind` of `timeout`, `network`, `rate_limited`, `upstream_unavailable`, `not_found`, `http`, `invalid_response`, `validation` or `circuit_open`, plus `retryable`, `status`, `url` and `issues` (for validation errors).

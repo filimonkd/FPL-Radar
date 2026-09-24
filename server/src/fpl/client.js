@@ -23,7 +23,7 @@ export const DEFAULT_TTLS = Object.freeze({
   bootstrapStatic: 5 * 60_000,
   fixtures: 5 * 60_000,
   eventLive: 60_000,
-  elementSummary: 10 * 60_000,
+  eventStatus: 60_000,
   entry: 5 * 60_000,
   entryHistory: 5 * 60_000,
   entryPicks: 5 * 60_000,
@@ -170,8 +170,7 @@ export function createFplClient(options = {}) {
 
     getEventLive: async (event) => request('eventLive', `/event/${positiveInt('event', event)}/live/`),
 
-    getElementSummary: async (elementId) =>
-      request('elementSummary', `/element-summary/${positiveInt('elementId', elementId)}/`),
+    getEventStatus: async () => request('eventStatus', '/event-status/'),
 
     getEntry: async (entryId) => request('entry', `/entry/${positiveInt('entryId', entryId)}/`),
 

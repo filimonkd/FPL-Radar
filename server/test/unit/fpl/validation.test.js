@@ -66,11 +66,11 @@ const cases = [
     invalid: { elements: [{ id: 1, stats: null }] },
   },
   {
-    name: 'element summary',
-    call: (c) => c.getElementSummary(10),
-    url: '/element-summary/10/',
-    valid: { fixtures: [{ id: 1 }], history: [{ element: 10, round: 1 }] },
-    invalid: { fixtures: [] },
+    name: 'event status',
+    call: (c) => c.getEventStatus(),
+    url: '/event-status/',
+    valid: { status: [{ event: 4, date: '2000-01-01', bonus_added: false, points: 'x' }], leagues: 'synthetic' },
+    invalid: { status: [{ event: 4, date: '2000-01-01', bonus_added: 'no', points: 'x' }], leagues: 'synthetic' },
   },
   {
     name: 'entry',

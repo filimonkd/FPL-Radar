@@ -70,9 +70,19 @@ export const eventLive = obj({
   ),
 });
 
-export const elementSummary = obj({
-  fixtures: z.array(obj({ id: z.int() })),
-  history: z.array(obj({ element: z.int(), round: z.int() })),
+// Bonus and league-table update state for the current gameweek.
+// Field values (e.g. the meaning of `points` codes or `leagues` strings) are
+// not interpreted here; only their presence and types are checked.
+export const eventStatus = obj({
+  status: z.array(
+    obj({
+      event: z.int(),
+      date: z.string(),
+      bonus_added: z.boolean(),
+      points: z.string(),
+    }),
+  ),
+  leagues: z.string(),
 });
 
 export const entry = obj({
