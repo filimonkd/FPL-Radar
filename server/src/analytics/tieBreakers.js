@@ -28,6 +28,21 @@ const RULES = {
 
 export const TIE_BREAK_RULES = Object.freeze([...Object.keys(RULES), SHARED]);
 
+// Rules the architecture itself names (v0.2 §13 default chain; §16 test cases
+// HIGHER_CAPTAIN_POINTS and NO_CHIP_PLAYED). Only these may be persisted as group
+// configuration; the others above are engine-capable but unconfirmed product
+// requirements (see fpl-contract/2026-27/smoke-decisions.md).
+export const CONFIRMED_TIE_BREAK_RULES = Object.freeze([
+  'FEWER_TRANSFER_COST',
+  'HIGHER_SEASON_TOTAL',
+  'HIGHER_CAPTAIN_POINTS',
+  'NO_CHIP_PLAYED',
+  SHARED,
+]);
+
+// The architecture's established default chain (v0.2 §13 Group.tieBreakRules).
+export const DEFAULT_TIE_BREAK_RULES = Object.freeze(['FEWER_TRANSFER_COST', 'HIGHER_SEASON_TOTAL', SHARED]);
+
 export const tieBreakValue = (rule, row) => RULES[rule](row);
 
 export const hasData = (rule, rows) => rows.every((r) => RULES[rule](r) !== null);
@@ -50,8 +65,10 @@ export const TIE_BREAKERS = Object.freeze(
   ),
 );
 
-export function isValidRuleChain(rules) {
+// A chain is valid when it uses known rules once each and ends with SHARED.
+// `allowed` narrows the vocabulary (persisted config uses CONFIRMED_TIE_BREAK_RULES).
+export function isValidRuleChain(rules, allowed = TIE_BREAK_RULES) {
   return Array.isArray(rules) && rules.length > 0 && rules.at(-1) === SHARED &&
-    rules.every((r, i) => (r === SHARED ? i === rules.length - 1 : r in RULES)) &&
+    rules.every((r, i) => allowed.includes(r) && (r === SHARED ? i === rules.length - 1 : r in RULES)) &&
     new Set(rules).size === rules.length;
 }

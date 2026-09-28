@@ -20,7 +20,8 @@
     "db:up": "docker compose up -d --wait mongo",
     "db:down": "docker compose down",
     "db:ping": "npm run db:ping -w server",
-    "fpl:smoke": "npm run fpl:smoke -w server --"
+    "fpl:smoke": "npm run fpl:smoke -w server --",
+    "db:migrate": "npm run db:migrate -w server"
   },
   "devDependencies": {
     "concurrently": "10.0.5"

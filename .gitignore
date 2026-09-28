@@ -39,3 +39,6 @@ npm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# mongodb-memory-server binaries
+.cache/

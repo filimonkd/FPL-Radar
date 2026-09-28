@@ -142,10 +142,32 @@ Pure functions with no I/O, database, clock or `process.env` access; `test/unit/
 
 Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/utils/canonical.js` (canonical JSON + SHA-256; re-exported from `src/db/canonical.js`) and `src/audit/hashChain.js` (append-only chain build/verify). `test/contract/engineOnSamples.test.js` runs the engine on the real 2026-27 samples.
 
+## Database (Step 4, `server/src/db`, `server/src/models`)
+
+- **Connection** (`db/connection.js`): the v0.3 §11 options. Pool of 10, majority writes, `autoIndex`/`autoCreate`/`bufferCommands` off, `strictQuery`, `strict: 'throw'` on every schema, and a default 5 s `maxTimeMS` on queries.
+- **Transactions** (`db/unitOfWork.js`): `withTransaction(fn)` is the only transaction opener. It uses snapshot reads, majority writes and primary reads, and the driver retries transient errors, so writes inside must be idempotent.
+- **Migrations** (`db/migrations/`):
+  - `001_collections_validators` creates the 15 collections with strict `$jsonSchema` validators.
+  - `002_indexes` creates exactly the 23 §13 indexes.
+  - They run on server boot and via `npm run db:migrate`. Each is recorded in `_migrations` with a checksum (line endings normalized). Applied migrations are skipped, and one that changed after it was applied is refused.
+- **Models** (`models/`): the 15 v0.3 §12 schemas.
+  - Deterministic `_id`s come from `db/ids.js`.
+  - `resultSnapshots` and `gwResultActions` are append-only.
+  - Points semantics default to `UNVERIFIED`; `CONFLICTED` is preserved.
+  - `tieBreakRules` only accepts rules the architecture documents, with the default `FEWER_TRANSFER_COST → HIGHER_SEASON_TOTAL → SHARED`.
+- There are no repositories, locks or sync code yet (Steps 5–7).
+
+## Test
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
-npm run test:integration # server/test/integration (none yet; MongoMemoryReplSet arrives with Step 4)
+npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions
+```
+
+Integration tests start a 1-node `MongoMemoryReplSet` (MongoDB 8.0.32, set in `server/package.json` → `config.mongodbMemoryServer`). The first run downloads about 100 MB. To use an existing replica set instead, for example the docker one, set `MONGODB_TEST_URI`:
+
+```bash
+MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=true' npm run test:integration
 ```
 
 ## Environment

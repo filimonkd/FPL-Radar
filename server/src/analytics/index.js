@@ -7,7 +7,7 @@ export { reconcileSeason } from './reconcile.js';
 export { deriveEventState, canFinalize, FinalizeBlockReason } from './eventState.js';
 export { selectEligible, IneligibleReason } from './eligibility.js';
 export { competitionRanks, resolvePositions } from './ranking.js';
-export { TIE_BREAKERS, TIE_BREAK_RULES, SHARED, isValidRuleChain } from './tieBreakers.js';
+export { TIE_BREAKERS, TIE_BREAK_RULES, CONFIRMED_TIE_BREAK_RULES, DEFAULT_TIE_BREAK_RULES, SHARED, isValidRuleChain } from './tieBreakers.js';
 export { computeGwResult } from './winner.js';
 export { deriveEffectiveSquad } from './effectiveSquad.js';
 export { computeOwnership } from './ownership.js';

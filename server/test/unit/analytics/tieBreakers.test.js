@@ -69,3 +69,11 @@ test('rule chains must end with SHARED and contain known rules once', () => {
   assert.equal(isValidRuleChain(['MADE_UP', 'SHARED']), false);
   assert.equal(isValidRuleChain(['FEWER_TRANSFER_COST', 'FEWER_TRANSFER_COST', 'SHARED']), false);
 });
+
+test('persistable vocabulary: only architecture-documented rules; default chain from v0.2 §13', async () => {
+  const { CONFIRMED_TIE_BREAK_RULES, DEFAULT_TIE_BREAK_RULES } = await import('../../../src/analytics/tieBreakers.js');
+  assert.deepEqual(DEFAULT_TIE_BREAK_RULES, ['FEWER_TRANSFER_COST', 'HIGHER_SEASON_TOTAL', 'SHARED']);
+  assert.equal(isValidRuleChain(DEFAULT_TIE_BREAK_RULES, CONFIRMED_TIE_BREAK_RULES), true);
+  assert.equal(isValidRuleChain(['BETTER_OVERALL_RANK', 'SHARED'], CONFIRMED_TIE_BREAK_RULES), false);
+  assert.equal(isValidRuleChain(['BETTER_OVERALL_RANK', 'SHARED']), true); // engine-capable, not persistable
+});
