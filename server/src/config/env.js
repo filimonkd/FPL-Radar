@@ -5,7 +5,9 @@ import { envSourceHint } from './envSource.js';
 // Environment contract (architecture v0.3 §17.4). Parsed once from process.env.
 
 // Boolean MongoDB URI options the driver accepts only as exactly "true"/"false".
-const BOOLEAN_URI_OPTIONS = ['directConnection', 'retryWrites', 'retryReads', 'tls', 'ssl', 'loadBalanced', 'journal'];
+export const BCRYPT_HASH = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
+const BOOLEAN_URI_OPTIONS =['directConnection', 'retryWrites', 'retryReads', 'tls', 'ssl', 'loadBalanced', 'journal'];
 
 // Reports malformed boolean options with the exact (escaped) value, so stray
 // characters such as a trailing quote or backtick are visible.
@@ -29,7 +31,16 @@ export const envSchema = z.object({
     .superRefine(checkUriOptions),
   MONGODB_DB: z.string({ error: 'is required' }).regex(/^[A-Za-z0-9_-]{1,63}$/, 'must be a valid database name'),
   JWT_SECRET: z.string({ error: 'is required' }).min(1, 'must not be empty'),
+  // Admin login (v0.3 §11 Render env): a bcrypt hash, never the password itself.
+  // Create one with `npm run auth:hash`. Optional outside production; without it login is disabled.
+  ADMIN_PASSWORD_HASH: z.string().regex(BCRYPT_HASH, 'must be a bcrypt hash ($2a$/$2b$/$2y$…, 60 chars)').optional(),
   FPL_API_BASE_URL: fplBaseUrlSchema.default(DEFAULT_FPL_API_BASE_URL),
+}).superRefine((env, ctx) => {
+  if (env.NODE_ENV !== 'production') return;
+  if (env.JWT_SECRET.length < 32 || env.JWT_SECRET === 'change-me') {
+    ctx.addIssue({ code: 'custom', path: ['JWT_SECRET'], message: 'must be a random secret of at least 32 characters in production' });
+  }
+  if (!env.ADMIN_PASSWORD_HASH) ctx.addIssue({ code: 'custom', path: ['ADMIN_PASSWORD_HASH'], message: 'is required in production' });
 });
 
 export class EnvError extends Error {

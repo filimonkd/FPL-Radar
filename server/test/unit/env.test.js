@@ -55,3 +55,16 @@ test('malformed boolean URI options are reported with the exact value', () => {
   }
   assert.doesNotThrow(() => parseEnv({ ...valid, MONGODB_URI: 'mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=false&retryWrites=true' }));
 });
+
+test('production requires a strong JWT_SECRET and an ADMIN_PASSWORD_HASH', () => {
+  const prod = { ...valid, NODE_ENV: 'production' };
+  assert.throws(() => parseEnv(prod), (err) => /JWT_SECRET/.test(err.message) && /ADMIN_PASSWORD_HASH is required/.test(err.message));
+  assert.throws(() => parseEnv({ ...prod, JWT_SECRET: 'change-me', ADMIN_PASSWORD_HASH: `$2b$12$${'a'.repeat(53)}` }), /JWT_SECRET/);
+  const ok = parseEnv({ ...prod, JWT_SECRET: 'k'.repeat(32), ADMIN_PASSWORD_HASH: `$2b$12$${'a'.repeat(53)}` });
+  assert.equal(ok.NODE_ENV, 'production');
+});
+
+test('ADMIN_PASSWORD_HASH must be a bcrypt hash, never a plain password', () => {
+  assert.throws(() => parseEnv({ ...valid, ADMIN_PASSWORD_HASH: 'hunter2' }), /ADMIN_PASSWORD_HASH must be a bcrypt hash/);
+  assert.equal(parseEnv(valid).ADMIN_PASSWORD_HASH, undefined, 'optional outside production');
+});

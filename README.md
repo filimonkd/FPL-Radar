@@ -229,11 +229,32 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - Bootstrap bodies are never stored.
 - **Failure codes:** `BLOCKED` (only with a concrete denial indicator), `AUTH_REQUIRED`, `NOT_FOUND`, `RATE_LIMITED`, `UPSTREAM_UNAVAILABLE`, `UPDATING`, `TIMEOUT`, `NETWORK`, `SCHEMA_FAIL`, `LOCK_LOST`, and others. Blocked and auth decisions reuse the Step 2 smoke classifiers.
 
+## Auth and groups (Step 8)
+
+- **Identities** (v0.3 §11/§17: one admin, no user accounts):
+  - **admin:** `POST /api/auth/login { password }` checks `ADMIN_PASSWORD_HASH` (bcrypt) and sets an HS256 JWT in an httpOnly, `SameSite=Strict` cookie (`Secure` in production). The same token is accepted as a `Bearer` header. Login is rate limited.
+  - **viewer:** a group's share token, sent as the `X-Share-Token` header. It gives read-only access to that one group. Any other group returns 404, and any write returns 403.
+  - **anonymous:** gets 401 on everything except `/api/health`.
+- **Credentials.** FPL credentials are never accepted or stored. Generate the admin hash with `npm run auth:hash` (the password is read from stdin). In production `JWT_SECRET` must be at least 32 random characters and `ADMIN_PASSWORD_HASH` is required.
+- **Group routes** (`/api/groups`). There are no DELETE routes; groups are archived instead.
+  - Create, list, get, patch config, archive and unarchive.
+  - Members: `POST …/members { entryIds }` adds manual members; `PATCH …/members/:entryId` sets exclusion or `joinedEvent`.
+  - Share token: issue/rotate and revoke.
+  - Sync: `POST …/sync { season, event }`.
+  - `GET /api/leagues/:id/preview` reports `OK | AUTH_REQUIRED | EMPTY | NOT_FOUND`. An FPL outage or block is a 502 `FPL_UNAVAILABLE`, never an empty league.
+  - `POST /api/entries/validate` checks entry IDs for manual mode.
+- **Creating a group and adding members** both call FPL, so they run as logged sync runs under the group lease. The group, its members and their `managers` documents are written in one fenced T2 transaction.
+  - A league without anonymous access is refused (422 `LEAGUE_NOT_ACCESSIBLE`); manual entry IDs are the fallback.
+  - A league already used by any group, even an archived one, returns 409 `LEAGUE_ALREADY_CONFIGURED`.
+  - Adding an entry that is already a member returns 409 `DUPLICATE_MEMBER`.
+  - Archived groups are read-only (409 `GROUP_ARCHIVED`).
+- **Shutdown.** On SIGTERM/SIGINT the server stops accepting requests. It marks each running sync run `ABANDONED` before releasing that run's lease, so no in-flight work can commit or finish as a success. Then it disconnects. Shutdown is idempotent, and new runs are refused with 503 `SHUTTING_DOWN`.
+
 ## Test
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
-npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results, sync
+npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results, sync, API auth/groups, shutdown
 ```
 
 Integration tests start a 1-node `MongoMemoryReplSet` (MongoDB 8.0.32, set in `server/package.json` → `config.mongodbMemoryServer`). The first run downloads about 100 MB. To use an existing replica set instead, for example the docker one, set `MONGODB_TEST_URI`:
@@ -250,7 +271,8 @@ MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=tru
 | `PORT`        | `4000`        | API port                                                  |
 | `MONGODB_URI` | required      | `mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=true` (use `127.0.0.1`, not `localhost`: on Windows `localhost` resolves to IPv6 `::1`, where the container isn't published) |
 | `MONGODB_DB`  | required      | `fpl_rival_dev` locally                                   |
-| `JWT_SECRET`  | required      | any non-empty value locally                               |
+| `JWT_SECRET`  | required      | any non-empty value locally; 32+ random chars in production|
+| `ADMIN_PASSWORD_HASH` | unset (login disabled) | bcrypt hash from `npm run auth:hash`; required in production |
 | `FPL_API_BASE_URL` | `https://fantasy.premierleague.com/api` | http(s) URL; trailing slash trimmed |
 
 The server loads `.env` from the repo root via Node's `--env-file` (`npm run dev`) or `--env-file-if-exists` (`npm start`, where the host provides the variables). `server/src/config/env.js` validates them with zod; if anything is missing or invalid, the server prints every problem and exits.

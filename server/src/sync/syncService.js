@@ -44,7 +44,37 @@ export class GroupArchivedError extends Error {
   }
 }
 
+export class ShuttingDownError extends Error {
+  constructor() {
+    super('the server is shutting down; no new sync runs are started');
+    this.name = 'ShuttingDownError';
+    this.code = 'SHUTTING_DOWN';
+    this.status = 503;
+  }
+}
+
 const MAX_STANDINGS_PAGES = 20;
+
+/** All standings pages of a classic league; `fetcher.fetch(call)` → { data, hash }. */
+async function readStandings(fetcher, fplLeagueId) {
+  const rows = [];
+  const hashByEntry = new Map();
+  let league = null;
+  for (let page = 1; page <= MAX_STANDINGS_PAGES; page++) {
+    const { data, hash } = await fetcher.fetch((c) => c.getClassicLeagueStandings(fplLeagueId, { page }));
+    league ??= { id: data.league.id, name: data.league.name };
+    for (const r of data.standings.results) {
+      if (!hashByEntry.has(r.entry)) rows.push(r);
+      hashByEntry.set(r.entry, hash);
+    }
+    if (!data.standings.has_next) break;
+  }
+  return { league, rows, hashByEntry };
+}
+
+// League access classes (v0.2 §10). BLOCKED / network / upstream failures are not
+// an answer about the league, so they are thrown, never reported as EMPTY.
+const LEAGUE_ACCESS_ANSWERS = new Map([[FailureCode.AUTH_REQUIRED, 'AUTH_REQUIRED'], [FailureCode.NOT_FOUND, 'NOT_FOUND']]);
 
 const stageError = (stage) => (err) => {
   if (err && typeof err === 'object' && !err.stage) err.stage = stage;
@@ -64,18 +94,31 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     if (!(await lease.heartbeat())) throw new LockLostError(lease.lockId, 'heartbeat');
   }
 
-  async function runJob({ lockId, job, target, season, event, trigger }, body) {
+  // Runs holding a lease in this process, for shutdown (v0.3 §11 SIGTERM).
+  const active = new Map(); // runId → { lease }
+  let closing = null;
+
+  /**
+   * One run under one lease. `rethrow`: a failing body still finishes the run as
+   * FAILED, then its error is rethrown to the caller (used by the API-facing
+   * member jobs, whose validation failures become 4xx responses).
+   */
+  async function runJob({ lockId, job, target, season = null, event = null, trigger, rethrow = false }, body) {
+    if (closing) throw new ShuttingDownError();
     const lease = await tryAcquireLease(lockId, { ttlMs: leaseTtlMs });
     if (!lease) throw new LockBusyError(lockId);
     const runId = String(lease.owner); // the lease owner is the run id (v0.3 §3 locks row)
+    active.set(runId, { lease });
     const out = { warnings: [], failures: [], partial: false, stats: {} };
     let run;
     try {
+      if (closing) throw new ShuttingDownError();
       lease.startHeartbeat({ intervalMs: heartbeatMs });
       const abandoned = await syncRunRepo.markAbandoned(lockId, lease.fencingToken, { at: clock() });
       run = await syncRunRepo.insert({ id: runId, job, target, season, event, trigger, lockId, lockFencingToken: lease.fencingToken, startedAt: clock() });
       if (abandoned) out.warnings.push({ code: 'RUNS_ABANDONED', detail: { count: abandoned } });
     } catch (err) {
+      active.delete(runId);
       lease.stopHeartbeat();
       await lease.release().catch(() => {});
       throw err;
@@ -84,10 +127,14 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     const recorder = new RunRecorder({ runId, client, captureEvidence: trigger === 'FINALIZE', clock });
     const ctx = { lease, run, recorder, out, season, event, write: () => ({ runId, startedAt: run.startedAt, at: clock() }) };
     let status;
+    let result;
+    let failure = null;
     try {
-      await body(ctx);
+      if (closing) throw new ShuttingDownError();
+      result = await body(ctx);
       status = out.failures.length || out.partial ? 'PARTIAL' : 'SUCCESS';
     } catch (err) {
+      failure = err;
       out.failures.push(failureOf(err, { stage: err?.stage ?? null }));
       status = 'FAILED';
     } finally {
@@ -96,12 +143,36 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
       if (recorder.writeErrors.length) out.warnings.push({ code: 'REQUEST_LOG_WRITE_FAILED', detail: { count: recorder.writeErrors.length } });
     }
     try {
+      // finish() only moves a RUNNING run: a run already ABANDONED (takeover or
+      // shutdown) can never be turned into a success afterwards.
       const finished = await syncRunRepo.finish(runId, { status, warnings: out.warnings, failures: out.failures, finishedAt: clock() });
-      if (!finished) status = (await syncRunRepo.get(runId))?.status ?? status; // e.g. ABANDONED by a takeover
+      if (!finished) status = (await syncRunRepo.get(runId))?.status ?? status;
     } finally {
       await lease.release().catch(() => {});
+      active.delete(runId);
     }
-    return { runId, status, warnings: out.warnings, failures: out.failures, stats: out.stats };
+    if (rethrow && failure) throw failure;
+    if (rethrow && status !== 'SUCCESS') throw new SyncStageError(status === 'ABANDONED' ? 'RUN_ABANDONED' : 'RUN_FAILED', `run ${runId} ended ${status}`);
+    return { runId, status, warnings: out.warnings, failures: out.failures, stats: out.stats, result };
+  }
+
+  /**
+   * SIGTERM (v0.3 §11): refuse new runs, mark every run this process holds
+   * ABANDONED (before anything can finish it), then release its lease. The
+   * in-flight work then fails its next fence and cannot commit. Idempotent.
+   */
+  function shutdown() {
+    closing ??= (async () => {
+      const abandoned = [];
+      for (const [runId, { lease }] of active) {
+        lease.stopHeartbeat();
+        await syncRunRepo.markAbandoned(lease.lockId, lease.fencingToken + 1, { at: clock() }).catch(() => {});
+        await lease.release().catch(() => {});
+        abandoned.push(runId);
+      }
+      return { abandoned };
+    })();
+    return closing;
   }
 
   // ── stage 2: bootstrap (T1 + players) ──────────────────────────────────
@@ -164,17 +235,10 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     const group = await groupRepo.getById(groupId);
     if (group.memberSource !== 'LEAGUE_STANDINGS') return group.members;
 
-    const rows = [];
-    const hashByEntry = new Map();
+    let rows;
+    let hashByEntry;
     try {
-      for (let page = 1; page <= MAX_STANDINGS_PAGES; page++) {
-        const { data, hash } = await recorder.fetch((c) => c.getClassicLeagueStandings(group.fplLeagueId, { page }));
-        for (const r of data.standings.results) {
-          if (!hashByEntry.has(r.entry)) rows.push(r);
-          hashByEntry.set(r.entry, hash);
-        }
-        if (!data.standings.has_next) break;
-      }
+      ({ rows, hashByEntry } = await readStandings(recorder, group.fplLeagueId));
     } catch (err) {
       const f = failureOf(err, { league: true, stage: 'standings' });
       if (f.code !== FailureCode.AUTH_REQUIRED) throw err;
@@ -317,7 +381,118 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     }
   }
 
+  // ── group membership (T2) jobs used by the group API ───────────────────
+  const direct = { fetch: async (call) => ({ data: await call(client), hash: null }) };
+
+  /** Classifies anonymous standings access: OK | AUTH_REQUIRED | EMPTY | NOT_FOUND. Other failures throw. */
+  async function leagueAccess(fplLeagueId, fetcher = direct) {
+    try {
+      const { league, rows, hashByEntry } = await readStandings(fetcher, fplLeagueId);
+      if (rows.length === 0) return { access: 'EMPTY', league, members: [], hashByEntry };
+      return { access: 'OK', league, members: rows.map(profileFromStandings), hashByEntry };
+    } catch (err) {
+      const access = LEAGUE_ACCESS_ANSWERS.get(failureOf(err, { league: true }).code);
+      if (access) return { access, league: null, members: [], hashByEntry: new Map() };
+      throw err;
+    }
+  }
+
+  /** Looks each entry up on the public /entry/{id}/ endpoint: { valid: profiles[], invalid: entryIds[] }. */
+  async function lookupEntries(entryIds, fetcher = direct) {
+    const results = await Promise.all(entryIds.map(async (entryId) => {
+      try {
+        const { data, hash } = await fetcher.fetch((c) => c.getEntry(entryId));
+        return { entryId, profile: profileFromEntry(data), hash };
+      } catch (err) {
+        if (err instanceof FplError && err.kind === FplErrorKind.NOT_FOUND) return { entryId, profile: null };
+        throw err;
+      }
+    }));
+    return {
+      valid: results.filter((r) => r.profile).map((r) => ({ ...r.profile, hash: r.hash })),
+      invalid: results.filter((r) => !r.profile).map((r) => r.entryId),
+    };
+  }
+
+  const toProfile = ({ entryId, playerName, teamName }) => ({ entryId, playerName, teamName });
+
+  /**
+   * Creates a group with its members and their managers documents in one T2
+   * (fenced on the new group's lease), under a logged run so every FPL call
+   * behind the new documents is traceable (v0.3 §8).
+   *   LEAGUE_STANDINGS: members from anonymous standings; any access answer other
+   *                     than OK fails with LEAGUE_NOT_ACCESSIBLE (never a fake empty league).
+   *   MANUAL:           entryIds, each checked on /entry/{id}/ (INVALID_ENTRY_IDS).
+   */
+  async function registerGroup({ id, group, entryIds = [] }) {
+    const { result } = await runJob({ lockId: lockKeys.group(id), job: 'group-create', target: id, trigger: 'MANUAL', rethrow: true }, async (ctx) => {
+      let members;
+      let profiles;
+      let sourceOf;
+      if (group.memberSource === 'LEAGUE_STANDINGS') {
+        const access = await leagueAccess(group.fplLeagueId, ctx.recorder);
+        if (access.access !== 'OK') throw new SyncStageError('LEAGUE_NOT_ACCESSIBLE', `league ${group.fplLeagueId}: ${access.access}`, { access: access.access });
+        members = access.members.map((p) => ({ entryId: p.entryId, addedManually: false }));
+        const known = new Set((await managerRepo.getMany(members.map((m) => m.entryId))).map((m) => m.entryId));
+        profiles = access.members.filter((p) => !known.has(p.entryId));
+        sourceOf = (p) => ({ standings: access.hashByEntry.get(p.entryId) });
+      } else {
+        const found = await lookupEntries(entryIds, ctx.recorder);
+        if (found.invalid.length) throw new SyncStageError('INVALID_ENTRY_IDS', `unknown FPL entries: ${found.invalid.join(', ')}`, { invalid: found.invalid });
+        members = entryIds.map((entryId) => ({ entryId, addedManually: true }));
+        const hashes = new Map(found.valid.map((p) => [p.entryId, p.hash]));
+        profiles = found.valid.map(toProfile);
+        sourceOf = (p) => ({ entry: hashes.get(p.entryId) });
+      }
+      if (group.myEntryId != null && !members.some((m) => m.entryId === group.myEntryId)) {
+        throw new SyncStageError('MY_ENTRY_NOT_MEMBER', `myEntryId ${group.myEntryId} is not a member`);
+      }
+      return withTransaction(async (session) => {
+        await ctx.lease.fence(session);
+        const created = await groupRepo.create({ ...group, id, members }, { session, at: clock() });
+        if (profiles.length) await managerRepo.upsertProfiles(profiles, ctx.write(), { session, sourceRequests: sourceOf });
+        return created;
+      });
+    });
+    return result;
+  }
+
+  /**
+   * Adds manual members (v0.2 §10: POST /groups/:id/members { entryIds }) after
+   * checking each on /entry/{id}/; one T2 fenced on the group lease. An entryId
+   * already in the group is rejected (DuplicateMemberError), never merged.
+   */
+  async function addMembers(groupId, entryIds) {
+    const { result } = await runJob({ lockId: lockKeys.group(groupId), job: 'group-members', target: String(groupId), trigger: 'MANUAL', rethrow: true }, async (ctx) => {
+      const found = await lookupEntries(entryIds, ctx.recorder);
+      if (found.invalid.length) throw new SyncStageError('INVALID_ENTRY_IDS', `unknown FPL entries: ${found.invalid.join(', ')}`, { invalid: found.invalid });
+      const hashes = new Map(found.valid.map((p) => [p.entryId, p.hash]));
+      return withTransaction(async (session) => {
+        await ctx.lease.fence(session);
+        const current = await groupRepo.getById(groupId, { session });
+        if (!current) throw new NotFoundError('group', groupId);
+        if (!current.isActive) throw new GroupArchivedError(groupId);
+        const updated = await groupRepo.setMembers(groupId, [
+          ...current.members,
+          ...entryIds.map((entryId) => ({ entryId, addedManually: true })),
+        ], { session, at: clock() });
+        await managerRepo.upsertProfiles(found.valid.map(toProfile), ctx.write(), { session, sourceRequests: (p) => ({ entry: hashes.get(p.entryId) }) });
+        return updated;
+      });
+    });
+    return result;
+  }
+
   return {
+    leagueAccess: (fplLeagueId) => leagueAccess(fplLeagueId),
+    lookupEntries: (entryIds) => lookupEntries(entryIds),
+    registerGroup,
+    addMembers,
+    shutdown,
+    get activeRuns() {
+      return [...active.keys()];
+    },
+
     /** Bootstrap-only job under the sync:bootstrap lease (T1 + players). */
     async syncBootstrap({ season, trigger = 'SCHEDULER' }) {
       return runJob({ lockId: lockKeys.bootstrap(), job: 'bootstrap', target: 'bootstrap', season, event: null, trigger }, async (ctx) => {

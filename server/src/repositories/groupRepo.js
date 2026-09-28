@@ -12,7 +12,9 @@ import { requireTransaction, sessionOpt } from './internal/session.js';
 // writes the members array by read-modify-write inside the caller's
 // transaction (v0.3 §4). The model validator and db:check (I1) back it up.
 
-export const CONFIG_FIELDS = Object.freeze(['name', 'winnerRule', 'tieBreakRules', 'myEntryId', 'shareToken']);
+// memberSource: the documented LEAGUE_STANDINGS → MANUAL fallback (v0.2 §10); the
+// league ID stays as a label and keeps its unique index.
+export const CONFIG_FIELDS = Object.freeze(['name', 'winnerRule', 'tieBreakRules', 'myEntryId', 'shareToken', 'memberSource']);
 
 export function assertUniqueMembers(members) {
   const seen = new Set();
@@ -94,6 +96,12 @@ export const groupRepo = {
 
   async getBySlug(slug, { session } = {}) {
     return groupToDomain(await Group.findOne({ slug }).session(session ?? null).lean());
+  },
+
+  /** The group (active or archived) configured for an FPL league (index fplLeagueId_unique_when_set). */
+  async getByLeagueId(fplLeagueId, { session } = {}) {
+    if (!Number.isInteger(fplLeagueId)) return null;
+    return groupToDomain(await Group.findOne({ fplLeagueId }).session(session ?? null).lean());
   },
 
   async getByShareToken(shareToken, { session } = {}) {

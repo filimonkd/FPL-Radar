@@ -14,11 +14,16 @@
     "test:integration": "node --test --test-concurrency=1 \"test/integration/**/*.test.js\"",
     "db:ping": "node --env-file-if-exists=../.env scripts/dbPing.js",
     "fpl:smoke": "node scripts/fplSmoke.js",
-    "db:migrate": "node --env-file-if-exists=../.env scripts/migrate.js"
+    "db:migrate": "node --env-file-if-exists=../.env scripts/migrate.js",
+    "auth:hash": "node scripts/hashPassword.js"
   },
   "dependencies": {
+    "bcryptjs": "3.0.3",
     "bottleneck": "2.19.5",
+    "cookie-parser": "1.4.7",
     "express": "5.2.1",
+    "express-rate-limit": "8.7.0",
+    "jsonwebtoken": "9.0.3",
     "lru-cache": "11.5.3",
     "mongoose": "9.10.2",
     "zod": "4.6.5"
