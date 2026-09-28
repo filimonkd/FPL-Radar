@@ -155,7 +155,21 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - `resultSnapshots` and `gwResultActions` are append-only.
   - Points semantics default to `UNVERIFIED`; `CONFLICTED` is preserved.
   - `tieBreakRules` only accepts rules the architecture documents, with the default `FEWER_TRANSFER_COST → HIGHER_SEASON_TOTAL → SHARED`.
-- There are no repositories, locks or sync code yet (Steps 5–7).
+- There are no repositories (apart from `lockRepo`) or sync code yet (Steps 6–7).
+
+## Lease locks (Step 5, `server/src/locks`, `server/src/repositories/lockRepo.js`)
+
+- **Lock ids** come from `lockKeys`: `sync:group:<groupId>`, `sync:bootstrap` and `migrate`. Each lease has a unique owner (an ObjectId, used for identity only) and a fencing token.
+- **acquire** (`tryAcquireLease` / `acquireLease({ waitMs })`, which throws `LockBusyError`, code `SYNC_IN_PROGRESS`):
+  1. An atomic takeover of a free or expired lease, judged by the server clock `$$NOW`.
+  2. Otherwise, an atomic create-if-missing upsert. A held lease makes it collide on `_id`.
+  - **Deviation from v0.3 §5:** MongoDB rejects `$expr` in an upsert filter, so §5's single "upsert if free or expired" statement is split into these two atomic steps.
+- **heartbeat** and **fence** only succeed for the current owner + token *and* an unexpired lease. An expired lease counts as lost even if nobody took it yet.
+  - `fence(session)` must be the first write in a guarded transaction. It writes the lock document, so a concurrent takeover waits for the transaction instead of interleaving. A lost lease throws `LockLostError` (code `LOCK_LOST`), which aborts the transaction.
+- **release** is owner-only and idempotent.
+- **`withLease(id, fn)`** heartbeats every 30 s by default and always releases.
+- **Fencing tokens** strictly increase per scope: `max(previous + 1, server epoch ms)`. They keep increasing even after the TTL index removes a long-dead lock document.
+- **Migrations** run under the `migrate` lease (`db/migrations/locked.js`), on boot and via `npm run db:migrate`.
 
 ## Test
 

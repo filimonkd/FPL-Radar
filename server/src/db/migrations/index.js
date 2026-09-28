@@ -7,9 +7,9 @@ import * as m002 from './002_indexes.js';
 // Migration runner (architecture v0.3 §11): numbered JS files with up(db),
 // recorded in _migrations with a checksum and skipped once applied. A
 // migration whose file changed after it was applied is refused.
-// Step 5 wraps runMigrations in the 'migrate' lease lock; until then the
-// runner relies on every migration being idempotent (createCollection/collMod,
-// createIndexes) and on the _migrations _id preventing a double record.
+// Boot and the CLI call runMigrationsLocked (./locked.js), which holds the
+// 'migrate' lease; the runner itself stays safe without it because every
+// migration is idempotent and the _migrations _id prevents a double record.
 
 const file = (name) => fileURLToPath(new URL(`./${name}.js`, import.meta.url));
 

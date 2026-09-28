@@ -23,6 +23,7 @@ export async function startTestDb() {
   return {
     db: mongoose.connection.db,
     dbName,
+    uri, // for child processes that need their own connection
     async stop() {
       await mongoose.connection.dropDatabase().catch(() => {});
       await mongoose.disconnect();

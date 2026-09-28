@@ -2,7 +2,7 @@ import { loadEnv } from './config/env.js';
 import { connectDb, disconnectDb, getDbStatus } from './db/connection.js';
 import { createApp } from './app.js';
 import { version } from './version.js';
-import { runMigrations } from './db/migrations/index.js';
+import { runMigrationsLocked } from './db/migrations/locked.js';
 import mongoose from 'mongoose';
 
 const config = loadEnv();
@@ -18,8 +18,8 @@ try {
 }
 console.log(`MongoDB connected (db: ${config.MONGODB_DB})`);
 
-// Boot-time migrations (v0.3 §11; the migrate lease lock arrives in Step 5).
-const migrations = await runMigrations(mongoose.connection.db, { log: console.log });
+// Boot-time migrations under the 'migrate' lease (v0.3 §11).
+const migrations = await runMigrationsLocked(mongoose.connection.db, { log: console.log });
 console.log(`Migrations: ${migrations.applied.length} applied, ${migrations.skipped.length} already applied`);
 
 const app = createApp({ config, version, getDbStatus });
