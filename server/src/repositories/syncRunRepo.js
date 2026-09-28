@@ -95,6 +95,12 @@ export const syncRunRepo = {
   },
 
   /** Most recent runs for a target (index target_recent). */
+  /** Most recent runs of any target, newest first (Status page). */
+  async listRecentRuns({ limit = 20, session } = {}) {
+    const docs = await SyncRun.find({}).sort({ startedAt: -1 }).limit(limit).session(session ?? null).lean();
+    return docs.map(syncRunToDomain);
+  },
+
   async listRecent(target, { limit = 20, session } = {}) {
     const docs = await SyncRun.find({ target }).sort({ startedAt: -1 }).limit(limit).session(session ?? null).lean();
     return docs.map(syncRunToDomain);

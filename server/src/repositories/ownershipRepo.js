@@ -1,11 +1,14 @@
 import { Player } from '../models/Player.js';
+import { Season } from '../models/Season.js';
+import { ids } from '../db/ids.js';
+import { seasonToDomain, chipRulesToEngine } from './mappers/season.js';
 import { playerToDomain } from './mappers/player.js';
 import { memberToEngine } from './mappers/group.js';
 import { toEngineGwRow } from './mappers/managerGameweek.js';
 import { liveToEngineMap } from './mappers/live.js';
 import { loadGroupGw, loadRuns, buildSources } from './internal/assemble.js';
 
-// Ownership / captaincy / transfer input assembler (v0.3 §10 rule 3): picks,
+// Ownership / captaincy / transfer / chip input assembler (v0.3 §10 rule 3): picks,
 // chips, auto-subs and live data for deriveEffectiveSquad, plus what
 // selectEligible, computeOwnership and the transfer summary take. Read-only;
 // ownership tables are computed on read and never stored (v0.2 §9).
@@ -46,6 +49,31 @@ export const ownershipRepo = {
       players,
       eventState: eventDoc?.state ?? null,
       sources: await sourcesOf([eventDoc, live, ...rows], session),
+    };
+  },
+
+  /**
+   * Chip inputs for one GW (v0.2 §8): the season's validated chip rules (with
+   * their own provenance), every member's played chips (managerSeasons, from
+   * FPL history) and the GW rows' squad chips.
+   * @returns {Promise<{ members, gwRows, rows, played, synced, chipRules, eventState, sources }>}
+   *   rows: [{ entryId, activeChip, hasPicks, picks, autoSubs }] for the GW;
+   *   played: [{ entryId, chipName, event }] for synced members;
+   *   chipRules: { source, rules (engine form) } or null when the season has none stored.
+   */
+  async loadChips(groupId, season, event, { session } = {}) {
+    const { group, eventDoc, rows, managerSeasons } = await loadGroupGw(groupId, season, event, session);
+    const seasonDoc = seasonToDomain(await Season.findById(ids.season(season)).session(session ?? null).lean(), { withProvenance: true });
+    const members = group.members.map((m) => ({ ...memberToEngine(m, managerSeasons.some((s) => s.entryId === m.entryId)), leftLeague: m.leftLeague }));
+    return {
+      members,
+      gwRows: rows.map(toEngineGwRow),
+      rows: rows.map((r) => ({ entryId: r.entryId, activeChip: r.activeChip, hasPicks: r.hasPicks, picks: r.picks, autoSubs: r.autoSubs })),
+      played: managerSeasons.flatMap((m) => m.chips.map((c) => ({ entryId: m.entryId, chipName: c.name, event: c.event }))),
+      synced: managerSeasons.map((m) => m.entryId),
+      chipRules: seasonDoc ? { source: seasonDoc.chipRules.source, rules: chipRulesToEngine(seasonDoc.chipRules) } : null,
+      eventState: eventDoc?.state ?? null,
+      sources: await sourcesOf([eventDoc, seasonDoc ? { provenance: seasonDoc.chipRules.provenance } : null, ...rows, ...managerSeasons], session),
     };
   },
 

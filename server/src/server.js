@@ -8,6 +8,7 @@ import { createSyncService } from './sync/index.js';
 import { createGroupService } from './services/groupService.js';
 import { createResultService } from './services/resultService.js';
 import { createOwnershipService } from './services/ownershipService.js';
+import { createStatusService } from './services/statusService.js';
 import { createShutdown } from './shutdown.js';
 import mongoose from 'mongoose';
 
@@ -34,8 +35,9 @@ const sync = createSyncService({ client: fplClient });
 const groups = createGroupService({ sync });
 const results = createResultService({ sync });
 const ownership = createOwnershipService();
+const status = createStatusService();
 
-const app = createApp({ config, version, getDbStatus, services: { groups, results, ownership } });
+const app = createApp({ config, version, getDbStatus, services: { groups, results, ownership, status } });
 const server = app.listen(config.PORT, () => {
   console.log(`Server listening on http://localhost:${config.PORT}`);
 });

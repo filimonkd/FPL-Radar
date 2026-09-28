@@ -289,6 +289,25 @@ Everything here is computed when requested and never stored, and it only reads (
 
   Managers without a synced transfer list are reported as missing, not counted as zero.
 
+## Chips and status (Step 11)
+
+Everything here only reads data (v0.2 §8, v0.3 §9, §15).
+
+- **`GET /api/groups/:id/chips?season=&event=`** (admin or the group's viewer; `event` defaults to the current gameweek):
+  - **Rules:** the season's validated chip rules (FPL bootstrap, or CONFIG_FALLBACK flagged), with display labels that fall back to the raw name.
+  - **Availability:** per manager, from `chipAvailability`: used, allowed and available per window, whether the window is current, and UNMAPPED names.
+  - **Gameweek chip state:** per manager, comparing FPL history with the stored gameweek squad:
+    - `PLAYED`: history lists the chip.
+    - `NONE`: neither source shows a chip.
+    - `ACTIVE_UNCONFIRMED`: the squad shows a chip that history doesn't list yet.
+    - `SOURCE_DISAGREEMENT`: the two sources name different chips.
+    - `UNKNOWN`: not synced, or no gameweek row. Missing data is never read as "no chip".
+  - **Applied effect:** the scoring effect `deriveEffectiveSquad` actually applies (bench boost, triple captain, or none for wildcard and free hit).
+  - Results for a gameweek that isn't DATA_CHECKED are marked provisional.
+  - Each response carries `inputsHash` and the source runs.
+- **`GET /api/seasons/:season/events`** (signed in): gameweek states, first-observed DATA_CHECKED time, fixture progress, and the current gameweek's live state.
+- **`GET /api/status?season=`** (admin): recent runs, the season's points semantics exactly as stored, the chip-rule source, the storage gauge (dbStats against the 512 MB quota, warning at 60%), and smoke verdicts parsed from `fpl-contract/<season>/smoke-report.md`. `GET /api/status/runs/:id` shows a run's full request log.
+
 ## Test
 
 ```bash

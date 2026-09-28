@@ -56,3 +56,25 @@ export async function getDbStatus() {
     return { ok: false, state, error: err.message };
   }
 }
+
+// Storage gauge (v0.3 §9): Atlas M0 has a 512 MB quota; the Status page warns at 60 %.
+export const STORAGE_QUOTA_BYTES = 512 * 1024 * 1024;
+export const STORAGE_WARN_RATIO = 0.6;
+
+/** dbStats summary: data + index bytes against the quota. Read-only. */
+export async function getStorageStats({ quotaBytes = STORAGE_QUOTA_BYTES } = {}) {
+  const s = await mongoose.connection.db.command({ dbStats: 1, scale: 1 });
+  const usedBytes = (s.dataSize ?? 0) + (s.indexSize ?? 0);
+  const ratio = quotaBytes > 0 ? usedBytes / quotaBytes : null;
+  return {
+    collections: s.collections,
+    objects: s.objects,
+    dataSize: s.dataSize,
+    storageSize: s.storageSize,
+    indexSize: s.indexSize,
+    usedBytes,
+    quotaBytes,
+    usedPct: ratio === null ? null : Math.round(ratio * 10_000) / 100,
+    warning: ratio !== null && ratio >= STORAGE_WARN_RATIO,
+  };
+}
