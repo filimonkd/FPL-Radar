@@ -1,0 +1,134 @@
+# Weekly encrypted backup (architecture v0.3 §11 "Backups"; Atlas M0 has none).
+#   1. temporary Atlas access entry for this runner's IP (deleted in an always() step, and auto-expiring after 1 h)
+#   2. mongodump, one archive per collection, as the read-only backup user
+#   3. remove the access entry
+#   4. restore into a mongo:8.0 service container and run npm run db:check against it
+#   5. encrypt with age to ops/backup.pub, upload as a 90-day artifact named with the db:check result
+# Nothing unencrypted leaves the runner and no document content is printed to the log.
+# Setup (secrets, API key, public key): docs/DEPLOYMENT.md §5.
+name: Backup
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC, after the weekend GW
+  workflow_dispatch:
+    inputs:
+      include_raw:
+        description: Also dump fplRawResponses (evidence recovery only; large)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DB_NAME: ${{ vars.MONGODB_DB || 'fpl_rival' }}
+      COLLECTIONS: groups managers seasons events managerGameweeks managerSeasons resultSnapshots gwResults gwResultActions syncRuns
+      MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.ATLAS_PUBLIC_KEY }}
+      MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.ATLAS_PRIVATE_KEY }}
+      MONGODB_ATLAS_PROJECT_ID: ${{ secrets.ATLAS_PROJECT_ID }}
+      BACKUP_RO_URI: ${{ secrets.BACKUP_RO_URI }}
+    services:
+      restore:
+        image: mongo:8.0
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check configuration
+        run: |
+          missing=""
+          for v in MONGODB_ATLAS_PUBLIC_API_KEY MONGODB_ATLAS_PRIVATE_API_KEY MONGODB_ATLAS_PROJECT_ID BACKUP_RO_URI; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          [ -z "$missing" ] || { echo "::error::backup secrets not configured:$missing (docs/DEPLOYMENT.md §5)"; exit 1; }
+          grep -q '^age1' ops/backup.pub 2>/dev/null || { echo "::error::ops/backup.pub (age public key) is missing (docs/DEPLOYMENT.md §5)"; exit 1; }
+          if [ "${{ inputs.include_raw }}" = "true" ]; then echo "COLLECTIONS=$COLLECTIONS fplRawResponses" >> "$GITHUB_ENV"; fi
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+
+      - name: Install Atlas CLI, MongoDB Database Tools, age
+        run: |
+          curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" \
+            | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update -q
+          sudo apt-get install -y -q mongodb-atlas-cli mongodb-database-tools age
+          atlas --version; mongodump --version | head -1; age --version
+
+      - name: Temporary Atlas access entry (runner IP, expires in 1 h)
+        run: |
+          ip=$(curl -fsS https://checkip.amazonaws.com | tr -d '[:space:]')
+          echo "::add-mask::$ip"
+          echo "RUNNER_IP=$ip" >> "$GITHUB_ENV"
+          atlas accessLists create "$ip" --type ipAddress --comment "gh-backup-${{ github.run_id }}" \
+            --deleteAfter "$(date -u -d '+1 hour' +%Y-%m-%dT%H:%M:%SZ)" --output json > /dev/null
+          echo "access entry created"
+
+      - name: mongodump (one archive per collection)
+        run: |
+          mkdir -p dump
+          for c in $COLLECTIONS; do
+            ok=""
+            for attempt in 1 2 3 4 5 6 7 8; do # the access entry takes ~30 s to apply
+              if mongodump --quiet --uri "$BACKUP_RO_URI" --db "$DB_NAME" --collection "$c" --gzip --archive="dump/$c.gz"; then ok=1; break; fi
+              echo "mongodump $c attempt $attempt failed; retrying in 15 s"; sleep 15
+            done
+            [ -n "$ok" ] || { echo "::error::mongodump of $c failed"; exit 1; }
+            echo "dumped $c ($(stat -c %s "dump/$c.gz") bytes)"
+          done
+
+      - name: Remove the Atlas access entry
+        if: always()
+        run: |
+          [ -n "$RUNNER_IP" ] || exit 0
+          atlas accessLists delete "$RUNNER_IP" --force && echo "access entry removed"
+
+      - name: Restore into mongo:8.0 and run db:check
+        id: check
+        run: |
+          for c in $COLLECTIONS; do
+            mongorestore --quiet --uri "mongodb://127.0.0.1:27017" --gzip --archive="dump/$c.gz" --nsInclude "$DB_NAME.$c"
+          done
+          set +e
+          MONGODB_URI="mongodb://127.0.0.1:27017" MONGODB_DB="$DB_NAME" node server/scripts/dbCheck.js > dump/dbcheck.json
+          code=$?
+          set -e
+          # Counts only: the report names documents, and this log may be public.
+          node -e 'const r=JSON.parse(require("fs").readFileSync("dump/dbcheck.json","utf8"));const by={};for(const v of r.violations)by[v.invariant+" "+v.severity]=(by[v.invariant+" "+v.severity]??0)+1;console.log(JSON.stringify({ok:r.ok,counts:r.counts,byInvariant:by}))' || true
+          if [ "$code" = "0" ]; then echo "result=ok" >> "$GITHUB_OUTPUT"; else echo "result=FAIL" >> "$GITHUB_OUTPUT"; fi
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Encrypt (age, recipient ops/backup.pub)
+        run: |
+          tar -C dump -cf backup.tar .
+          age -R ops/backup.pub -o "fpl-rival-${{ steps.check.outputs.date }}.tar.age" backup.tar
+          rm -rf dump backup.tar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fpl-rival-${{ steps.check.outputs.date }}-dbcheck-${{ steps.check.outputs.result }}
+          path: fpl-rival-*.tar.age
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Fail on db:check errors
+        if: steps.check.outputs.result != 'ok'
+        run: |
+          echo "::error::db:check reported errors on the restored backup; the encrypted artifact holds dbcheck.json"
+          exit 1

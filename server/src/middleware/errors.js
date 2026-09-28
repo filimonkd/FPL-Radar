@@ -1,6 +1,7 @@
 import { AppError } from '../errors.js';
 import { FplError } from '../fpl/errors.js';
 import { classifyFailure } from '../sync/classify.js';
+import { redactError } from '../utils/redact.js';
 
 // One place that turns errors into { error: { code, message, details? } } with a
 // stable status (v0.2 §5 codes: GROUP_ARCHIVED, LEAGUE_ALREADY_CONFIGURED,
@@ -49,7 +50,8 @@ export function errorHandler({ log = console.error } = {}) {
   // eslint-disable-next-line no-unused-vars
   return (err, req, res, _next) => {
     const { status, code, message, details } = mapError(err);
-    if (status >= 500) log(`[${req.method} ${req.originalUrl}] ${code}:`, err);
+    // Path only (no query string), and a redacted error: never bodies, cookies or tokens.
+    if (status >= 500) log(`[${req.method} ${req.path}] ${code}: ${redactError(err)}`);
     res.status(status).json({ error: { code, message, ...(details === undefined ? {} : { details }) } });
   };
 }

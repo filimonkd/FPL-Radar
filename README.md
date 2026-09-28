@@ -308,11 +308,31 @@ Everything here only reads data (v0.2 §8, v0.3 §9, §15).
 - **`GET /api/seasons/:season/events`** (signed in): gameweek states, first-observed DATA_CHECKED time, fixture progress, and the current gameweek's live state.
 - **`GET /api/status?season=`** (admin): recent runs, the season's points semantics exactly as stored, the chip-rule source, the storage gauge (dbStats against the 512 MB quota, warning at 60%), and smoke verdicts parsed from `fpl-contract/<season>/smoke-report.md`. `GET /api/status/runs/:id` shows a run's full request log.
 
+## Deployment and operations (Step 12)
+
+Production is one Render free web service (Frankfurt) serving the API and the built client from the same origin, backed by Atlas M0 (MongoDB 8.0). `render.yaml` is the Blueprint; **`docs/DEPLOYMENT.md`** is the staged runbook:
+
+1. Validate the config.
+2. Set up Atlas (custom role, users, access list of Render's outbound CIDRs only; never `0.0.0.0/0`).
+3. Deploy on Render.
+4. Verify the database and migrations through `/api/health`.
+5. Verify end to end with `npm run smoke:deploy`.
+6. Set up backups.
+7. Rollback and restart.
+
+- **Build / start:** `npm ci --include=dev && npm run build`, then `npm start`. On start the server validates env, connects, runs the boot migrations under the `migrate` lease, then listens.
+- **`GET /api/health`:** 200 only when the DB answers, every migration is applied, env is valid and the process isn't shutting down. Otherwise 503 `degraded`; it recovers automatically.
+- **`POST /api/internal/tick`:** the keep-warm pinger, checked against the `X-Tick-Secret` header with a constant-time compare. It returns 204 and starts nothing.
+- **`npm run db:check`:** the read-only I1–I8 invariant scan (`ARCHITECTURE.md` §10). It prints a JSON report and exits 1 on any ERROR.
+- **`npm run smoke:deploy -- <url> [season]`:** read-only checks against a running instance. `TICK_SECRET` and `SMOKE_ADMIN_PASSWORD` in the environment enable the tick and login checks.
+- **`npm run check:bundle`:** fails if `client/dist` contains server env names, connection strings, hashes, JWTs, keys or direct FPL URLs. CI runs it after the build.
+- **`.github/workflows/backup.yml`:** weekly on Monday at 06:00 UTC, plus manual runs. It needs repository secrets and `ops/backup.pub`; see the runbook §5.
+
 ## Test
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
-npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results, sync, API auth/groups, shutdown
+npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results, sync, API auth/groups, shutdown, db:check, production process (boot, SIGTERM, restart)
 ```
 
 Integration tests start a 1-node `MongoMemoryReplSet` (MongoDB 8.0.32, set in `server/package.json` → `config.mongodbMemoryServer`). The first run downloads about 100 MB. To use an existing replica set instead, for example the docker one, set `MONGODB_TEST_URI`:
@@ -331,6 +351,7 @@ MONGODB_TEST_URI='mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=tru
 | `MONGODB_DB`  | required      | `fpl_rival_dev` locally                                   |
 | `JWT_SECRET`  | required      | any non-empty value locally; 32+ random chars in production|
 | `ADMIN_PASSWORD_HASH` | unset (login disabled) | bcrypt hash from `npm run auth:hash`; required in production |
+| `TICK_SECRET` | unset (tick route absent) | 32+ random chars; required in production (`X-Tick-Secret` for `POST /api/internal/tick`) |
 | `FPL_API_BASE_URL` | `https://fantasy.premierleague.com/api` | http(s) URL; trailing slash trimmed |
 
 The server loads `.env` from the repo root via Node's `--env-file` (`npm run dev`) or `--env-file-if-exists` (`npm start`, where the host provides the variables). `server/src/config/env.js` validates them with zod; if anything is missing or invalid, the server prints every problem and exits.

@@ -1,5 +1,5 @@
 import { loadEnv } from './config/env.js';
-import { connectDb, disconnectDb, getDbStatus } from './db/connection.js';
+import { connectDb, disconnectDb, getDbStatus, getMigrationStatus } from './db/connection.js';
 import { createApp } from './app.js';
 import { version } from './version.js';
 import { runMigrationsLocked } from './db/migrations/locked.js';
@@ -11,6 +11,8 @@ import { createOwnershipService } from './services/ownershipService.js';
 import { createStatusService } from './services/statusService.js';
 import { createShutdown } from './shutdown.js';
 import mongoose from 'mongoose';
+import { fileURLToPath } from 'node:url';
+import { redact, redactError } from './utils/redact.js';
 
 const config = loadEnv();
 
@@ -18,7 +20,7 @@ try {
   await connectDb(config.MONGODB_URI, config.MONGODB_DB);
 } catch (err) {
   console.error(
-    `Cannot connect to MongoDB at ${redactUri(config.MONGODB_URI)}: ${err.cause?.message ?? err.message}\n` +
+    `Cannot connect to MongoDB at ${redact(config.MONGODB_URI)}: ${redact(err.cause?.message ?? err.message)}\n` +
       '  Is the database running? Start it with `npm run db:up` (Docker must be running), then check with `npm run db:ping`.',
   );
   process.exit(1);
@@ -26,7 +28,14 @@ try {
 console.log(`MongoDB connected (db: ${config.MONGODB_DB})`);
 
 // Boot-time migrations under the 'migrate' lease (v0.3 §11).
-const migrations = await runMigrationsLocked(mongoose.connection.db, { log: console.log });
+let migrations;
+try {
+  migrations = await runMigrationsLocked(mongoose.connection.db, { log: console.log });
+} catch (err) {
+  console.error(`Boot migrations failed: ${redactError(err)}`);
+  await disconnectDb().catch(() => {});
+  process.exit(1);
+}
 console.log(`Migrations: ${migrations.applied.length} applied, ${migrations.skipped.length} already applied`);
 if (!config.ADMIN_PASSWORD_HASH) console.warn('ADMIN_PASSWORD_HASH is not set: admin login is disabled (create one with `npm run auth:hash`).');
 
@@ -37,7 +46,17 @@ const results = createResultService({ sync });
 const ownership = createOwnershipService();
 const status = createStatusService();
 
-const app = createApp({ config, version, getDbStatus, services: { groups, results, ownership, status } });
+const app = createApp({
+  config,
+  version,
+  getDbStatus,
+  getMigrationStatus,
+  getRuntime: () => ({ shuttingDown: sync.shuttingDown, activeRuns: sync.activeRuns.length }),
+  services: { groups, results, ownership, status },
+  log: console.error,
+  // The built client (npm run build → client/dist), served from the API's origin.
+  clientDir: fileURLToPath(new URL('../../client/dist/', import.meta.url)),
+});
 const server = app.listen(config.PORT, () => {
   console.log(`Server listening on http://localhost:${config.PORT}`);
 });
@@ -55,6 +74,9 @@ const shutdown = createShutdown({
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-function redactUri(uri) {
-  return uri.replace(/\/\/[^@/]+@/, '//***@');
-}
+// Last resort: log redacted and exit non-zero so Render restarts the instance;
+// any lease this process held expires on its own (v0.3 §5 crash recovery).
+process.on('unhandledRejection', (err) => {
+  console.error(`unhandledRejection: ${redactError(err)}`);
+  process.exit(1);
+});

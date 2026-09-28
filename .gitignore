@@ -42,3 +42,7 @@ Thumbs.db
 
 # mongodb-memory-server binaries
 .cache/
+
+# Encrypted backups (age); only the public key ops/backup.pub is committed
+*.age
+*.tar

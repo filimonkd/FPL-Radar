@@ -24,6 +24,8 @@ jobs:
           path: .cache/mongodb-binaries
           key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('server/package.json') }}
       - run: npm ci
+      # Build first: the production-process integration test serves client/dist.
+      - run: npm run build
+      - run: npm run check:bundle
       - run: npm test
       - run: npm run test:integration
-      - run: npm run build

@@ -55,3 +55,11 @@ export async function runMigrations(db, { migrations = MIGRATIONS, now = () => n
   }
   return { applied, skipped, total: migrations.length };
 }
+
+/** Applied vs expected migrations, for GET /api/health (v0.3 §11 "migrations: n"). Read-only. */
+export async function migrationStatus(db, { migrations = MIGRATIONS } = {}) {
+  const records = await db.collection('_migrations').find({}, { projection: { _id: 1 } }).toArray();
+  const applied = new Set(records.map((r) => r._id));
+  const pending = migrations.map((m) => m.name).filter((n) => !applied.has(n));
+  return { ok: pending.length === 0, applied: migrations.length - pending.length, expected: migrations.length, pending };
+}

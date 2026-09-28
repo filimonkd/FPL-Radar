@@ -1,3 +1,5 @@
+import { redact } from './utils/redact.js';
+
 // Graceful shutdown (architecture v0.3 §11): "On SIGTERM, the process stops
 // accepting requests, releases any held locks (their runs are marked ABANDONED)
 // and calls mongoose.disconnect()."
@@ -28,7 +30,7 @@ export function createShutdown({ server, sync, disconnect, closeClient = () => {
         await disconnect();
       } catch (err) {
         code = 1;
-        log(`shutdown error: ${err?.message ?? err}`);
+        log(`shutdown error: ${redact(err?.message ?? err)}`);
       } finally {
         clearTimeout(force);
       }

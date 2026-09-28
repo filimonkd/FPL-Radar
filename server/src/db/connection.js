@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import { migrationStatus } from './migrations/index.js';
+import { redact } from '../utils/redact.js';
 
 // One Mongoose connection per process (architecture v0.3 §11).
 // Indexes and validators come only from migrations (autoIndex/autoCreate off),
@@ -53,7 +55,7 @@ export async function getDbStatus() {
     await mongoose.connection.db.admin().ping();
     return { ok: true, state };
   } catch (err) {
-    return { ok: false, state, error: err.message };
+    return { ok: false, state, error: redact(err.message) };
   }
 }
 
@@ -77,4 +79,14 @@ export async function getStorageStats({ quotaBytes = STORAGE_QUOTA_BYTES } = {})
     usedPct: ratio === null ? null : Math.round(ratio * 10_000) / 100,
     warning: ratio !== null && ratio >= STORAGE_WARN_RATIO,
   };
+}
+
+/** Migration state for the health check; { ok: false } while disconnected. */
+export async function getMigrationStatus() {
+  if (mongoose.connection.readyState !== 1) return { ok: false, state: 'disconnected' };
+  try {
+    return await migrationStatus(mongoose.connection.db);
+  } catch (err) {
+    return { ok: false, error: redact(err.message) };
+  }
 }

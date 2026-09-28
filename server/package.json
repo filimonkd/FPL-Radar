@@ -15,7 +15,10 @@
     "db:ping": "node --env-file-if-exists=../.env scripts/dbPing.js",
     "fpl:smoke": "node scripts/fplSmoke.js",
     "db:migrate": "node --env-file-if-exists=../.env scripts/migrate.js",
-    "auth:hash": "node scripts/hashPassword.js"
+    "auth:hash": "node scripts/hashPassword.js",
+    "db:check": "node --env-file-if-exists=../.env scripts/dbCheck.js",
+    "check:bundle": "node scripts/checkBundle.js",
+    "smoke:deploy": "node scripts/deploySmoke.js"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",
@@ -23,6 +26,7 @@
     "cookie-parser": "1.4.7",
     "express": "5.2.1",
     "express-rate-limit": "8.7.0",
+    "helmet": "8.3.0",
     "jsonwebtoken": "9.0.3",
     "lru-cache": "11.5.3",
     "mongoose": "9.10.2",

@@ -527,6 +527,9 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     get activeRuns() {
       return [...active].filter(([, v]) => v.hasRun).map(([runId]) => runId);
     },
+    get shuttingDown() {
+      return closing !== null;
+    },
 
     /** Bootstrap-only job under the sync:bootstrap lease (T1 + players). */
     async syncBootstrap({ season, trigger = 'SCHEDULER' }) {

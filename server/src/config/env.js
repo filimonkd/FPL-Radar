@@ -34,6 +34,8 @@ export const envSchema = z.object({
   // Admin login (v0.3 §11 Render env): a bcrypt hash, never the password itself.
   // Create one with `npm run auth:hash`. Optional outside production; without it login is disabled.
   ADMIN_PASSWORD_HASH: z.string().regex(BCRYPT_HASH, 'must be a bcrypt hash ($2a$/$2b$/$2y$…, 60 chars)').optional(),
+  // Shared secret for POST /api/internal/tick (cron-job.org keep-warm, v0.3 §11). Optional outside production.
+  TICK_SECRET: z.string().min(32, 'must be at least 32 characters').optional(),
   FPL_API_BASE_URL: fplBaseUrlSchema.default(DEFAULT_FPL_API_BASE_URL),
 }).superRefine((env, ctx) => {
   if (env.NODE_ENV !== 'production') return;
@@ -41,6 +43,7 @@ export const envSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['JWT_SECRET'], message: 'must be a random secret of at least 32 characters in production' });
   }
   if (!env.ADMIN_PASSWORD_HASH) ctx.addIssue({ code: 'custom', path: ['ADMIN_PASSWORD_HASH'], message: 'is required in production' });
+  if (!env.TICK_SECRET) ctx.addIssue({ code: 'custom', path: ['TICK_SECRET'], message: 'is required in production' });
 });
 
 export class EnvError extends Error {

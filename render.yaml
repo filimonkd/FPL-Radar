@@ -1,0 +1,29 @@
+# Render Blueprint (architecture v0.3 §11, §17.3). One free web service serving
+# the Express API and the built client from the same origin. Secrets are never
+# in this file: `sync: false` values are entered in the Render dashboard, and
+# generated values are created once by Render. See docs/DEPLOYMENT.md.
+services:
+  - type: web
+    name: fpl-rival-dashboard
+    runtime: node            # Node 22 from .node-version
+    region: frankfurt        # pair with Atlas AWS eu-central-1 (Frankfurt)
+    plan: free
+    # --include=dev: NODE_ENV=production also applies to the build, and npm ci
+    # would then skip the client's build tools (vite, tailwind).
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start  # env check → connect → boot migrations (migrate lease) → listen
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass # deploy only commits whose CI is green
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_DB
+        value: fpl_rival
+      - key: MONGODB_URI     # app user (custom role), mongodb+srv://…/?retryWrites=true&w=majority
+        sync: false
+      - key: ADMIN_PASSWORD_HASH # bcrypt hash from `npm run auth:hash`, never the password
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: TICK_SECRET     # copy into the cron-job.org X-Tick-Secret header
+        generateValue: true

@@ -22,7 +22,10 @@
     "db:ping": "npm run db:ping -w server",
     "fpl:smoke": "npm run fpl:smoke -w server --",
     "db:migrate": "npm run db:migrate -w server",
-    "auth:hash": "npm run auth:hash -w server"
+    "auth:hash": "npm run auth:hash -w server",
+    "db:check": "npm run db:check -w server",
+    "check:bundle": "npm run check:bundle -w server",
+    "smoke:deploy": "npm run smoke:deploy -w server --"
   },
   "devDependencies": {
     "concurrently": "10.0.5"
