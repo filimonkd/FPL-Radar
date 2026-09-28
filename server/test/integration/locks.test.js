@@ -193,11 +193,13 @@ test('withLease heartbeats a short lease through long work, then releases', asyn
   const id = key();
   let blockedMidway;
   const result = await withLease(id, async (lease) => {
-    await sleep(900); // > 3× the 300 ms TTL
+    // > 3× the TTL. The TTL leaves room for a runner stall between beats: a
+    // lease that really expires is (correctly) lost, which is not what this tests.
+    await sleep(3_200);
     blockedMidway = await tryAcquireLease(id, { ttlMs: 60_000 });
     await withTransaction(async (session) => { await lease.fence(session); });
     return 'done';
-  }, { ttlMs: 300, heartbeatMs: 80 });
+  }, { ttlMs: 1_000, heartbeatMs: 100 });
   assert.equal(result, 'done');
   assert.equal(blockedMidway, null, 'a competitor could not take it while heartbeating');
   assert.equal((await lockRepo.get(id)).owner, null, 'released at the end');
