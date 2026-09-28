@@ -4,12 +4,13 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { groupsRouter } from './routes/groups.js';
 import { resultsRouter } from './routes/results.js';
+import { ownershipRouter } from './routes/ownership.js';
 import { authenticate } from './middleware/auth.js';
 import { errorHandler } from './middleware/errors.js';
 import { groupRepo } from './repositories/index.js';
 
 /**
- * @param {{ config, version, getDbStatus, services?: { groups, results? }, loginLimit?, log? }} deps
+ * @param {{ config, version, getDbStatus, services?: { groups, results?, ownership? }, loginLimit?, log? }} deps
  *   Without `services` only the health route is mounted (used by the health unit test).
  */
 export function createApp({ config, version, getDbStatus, services, loginLimit, log }) {
@@ -26,6 +27,7 @@ export function createApp({ config, version, getDbStatus, services, loginLimit, 
     app.use('/api/auth', authRouter({ config, loginLimit }));
     app.use('/api', groupsRouter({ groups: services.groups }));
     if (services.results) app.use('/api', resultsRouter({ results: services.results }));
+    if (services.ownership) app.use('/api', ownershipRouter({ ownership: services.ownership }));
   }
 
   app.use('/api', (_req, res) => {

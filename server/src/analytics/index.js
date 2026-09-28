@@ -11,4 +11,5 @@ export { TIE_BREAKERS, TIE_BREAK_RULES, CONFIRMED_TIE_BREAK_RULES, DEFAULT_TIE_B
 export { computeGwResult } from './winner.js';
 export { deriveEffectiveSquad } from './effectiveSquad.js';
 export { computeOwnership } from './ownership.js';
+export { summarizeTransfers } from './transfers.js';
 export { chipAvailability, validateChipRules } from './chips.js';

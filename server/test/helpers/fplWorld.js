@@ -94,9 +94,9 @@ export function createWorld({ seasonStartYear = 2026, entries = ENTRIES } = {}) 
     if (m[3]) {
       const event = Number(m[3]);
       const row = historyCurrent(e.rows).find((r) => r.event === event);
-      if (!row || event !== GW) return undefined;
+      if (!row || event !== GW || e.noPicks) return undefined;
       return {
-        active_chip: e.activeChip, automatic_subs: [],
+        active_chip: e.activeChip, automatic_subs: e.autoSubs ?? [],
         entry_history: { event, points: row.points, total_points: row.total_points, event_transfers: row.event_transfers, event_transfers_cost: row.event_transfers_cost, points_on_bench: row.points_on_bench },
         picks: e.picks,
       };

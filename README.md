@@ -272,6 +272,23 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - `…/trace` follows the snapshot to its runs, request log and raw bodies.
 - **Access:** share-token viewers can read their own group's results, history and snapshots; every decision is admin-only.
 
+## Ownership, captaincy and transfers (Step 10)
+
+Everything here is computed when requested and never stored, and it only reads (v0.2 §7, §9). Group admins and that group's share-token viewers can read both endpoints.
+
+- **`GET /api/groups/:id/gw/:gw/ownership?season=&view=picked|effective`**
+  - **Multipliers:** each manager's effective squad comes from `deriveEffectiveSquad`, which covers base multipliers, bench boost, FPL auto-subs, and captain → vice → none, or pending while the captain's fixtures aren't finished.
+  - **Ownership:** picked vs effective ownership and captaincy come from `computeOwnership`, for all members and for rivals (everyone except Me). That includes squad/XI/captain/triple-captain shares, picked and effective ownership, and Me's exposure against rivals.
+  - **Denominators:** each response reports its denominators. Members without picks are listed in `missingEntryIds`; invalid 15-pick squads are listed in `invalidPicks` and never guessed.
+  - **Default view:** picked before MATCHES_FINISHED, effective after. Rows are sorted by the chosen ownership measure, then by element ID.
+  - **Reproducibility:** each response carries `inputsHash`, a hash of exactly the persisted inputs used, and `sources`, the sync runs that last confirmed those inputs.
+- **`GET /api/groups/:id/gw/:gw/transfers?season=`** gives a factual summary:
+  - each eligible manager's transfers in this GW, with their transfer count, hit cost and chip;
+  - players brought in and sold, counted across managers;
+  - totals.
+
+  Managers without a synced transfer list are reported as missing, not counted as zero.
+
 ## Test
 
 ```bash
