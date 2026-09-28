@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 // Boundary rule (architecture v0.3 §10): src/analytics must stay pure.
 const ANALYTICS_DIR = fileURLToPath(new URL('../../src/analytics/', import.meta.url));
 
-const FORBIDDEN_IMPORT = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]((?:mongoose|mongodb)(?:\/[^'"]*)?|(?:\.\.\/)+(?:db|models|repositories)(?:\/[^'"]*)?)['"]/g;
+const FORBIDDEN_IMPORT = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]((?:mongoose|mongodb)(?:\/[^'"]*)?|(?:\.\.\/)+(?:db|models|repositories|locks)(?:\/[^'"]*)?)['"]/g;
 const PROCESS_ENV = /\bprocess\s*\.\s*env\b|\bprocess\s*\[\s*['"]env['"]\s*\]/;
 // Analytics must be deterministic: `now` is passed in (v0.2 §14).
 const IMPURE = [
@@ -41,6 +41,9 @@ test('detector flags every forbidden dependency', () => {
   assert.deepEqual(violations("import x from '../db/connection.js';"), ['imports ../db/connection.js']);
   assert.deepEqual(violations("const m = await import('../../models/Group.js');"), ['imports ../../models/Group.js']);
   assert.deepEqual(violations("export * from '../repositories/groupRepo.js';"), ['imports ../repositories/groupRepo.js']);
+  assert.deepEqual(violations("import { resultRepo } from '../repositories/index.js';"), ['imports ../repositories/index.js']);
+  assert.deepEqual(violations("import { toDomain } from '../repositories/mappers/group.js';"), ['imports ../repositories/mappers/group.js']);
+  assert.deepEqual(violations("import { withLease } from '../locks/leaseLock.js';"), ['imports ../locks/leaseLock.js']);
   assert.deepEqual(violations('const u = process.env.MONGODB_URI;'), ['reads process.env']);
   assert.deepEqual(violations("import { sum } from './math.js';"), []);
   assert.deepEqual(violations('const t = Date.now();'), ['reads the clock (Date.now)']);

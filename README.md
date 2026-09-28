@@ -155,7 +155,7 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - `resultSnapshots` and `gwResultActions` are append-only.
   - Points semantics default to `UNVERIFIED`; `CONFLICTED` is preserved.
   - `tieBreakRules` only accepts rules the architecture documents, with the default `FEWER_TRANSFER_COST → HIGHER_SEASON_TOTAL → SHARED`.
-- There are no repositories (apart from `lockRepo`) or sync code yet (Steps 6–7).
+- Repositories arrived in Step 6 (below). There is no sync code yet (Step 7).
 
 ## Lease locks (Step 5, `server/src/locks`, `server/src/repositories/lockRepo.js`)
 
@@ -171,11 +171,44 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
 - **Fencing tokens** strictly increase per scope: `max(previous + 1, server epoch ms)`. They keep increasing even after the TTL index removes a long-dead lock document.
 - **Migrations** run under the `migrate` lease (`db/migrations/locked.js`), on boot and via `npm run db:migrate`.
 
+## Repositories (Step 6, `server/src/repositories`)
+
+- **Only importers of `models/`.** Every read is `.lean()` + a `toDomain` mapper (`repositories/mappers/`). ObjectIds become hex strings, Dates stay Dates, and prices stay integer tenths. `provenance` is dropped unless a read passes `{ withProvenance: true }`.
+- **Sessions.** Every method takes an optional `{ session }` last. The T1–T4 writes refuse to run outside a `db/unitOfWork` transaction, and no repository opens one itself.
+- **Write surface** (v0.3 §10). There is no delete method anywhere; TTL on `expireAt` is the only deletion.
+
+  | Repository | Writes |
+  |---|---|
+  | `groupRepo` | `create`, `updateConfig`, `setMembers` (T2), `archive`, `unarchive` |
+  | `managerRepo` | `upsertProfiles` (T2/T3) |
+  | `seasonRepo` | `replaceTeamsAndChipRules` (T1), `applySemanticsEvidence` |
+  | `eventRepo` | `bulkUpsert` (T1) |
+  | `playerRepo` | `bulkUpsert` (unordered, no transaction) |
+  | `managerGameweekRepo` | `bulkUpsertSeasonRows` (T3) |
+  | `managerSeasonRepo` | `upsert` (T3) |
+  | `liveRepo` | `replace` |
+  | `syncRunRepo` | `insert`, `pushRequest`, `finish`, `markAbandoned`, `unsetExpiry` (T4) |
+  | `rawResponseRepo` | `insert`, `unsetEvidenceExpiry` (T4) |
+  | `resultRepo` | `insertSnapshot`, `appendAction`, `movePointer` (T4) |
+  | `ownershipRepo` | none |
+  | `lockRepo` | `acquire`, `heartbeat`, `fence`, `release` |
+
+- **Idempotent snapshot writes** (§6):
+  - Each write is a deterministic `_id` upsert with a content-hash `$cond` pipeline, sent via the native `bulkWrite` after Mongoose validation.
+  - A replay only restamps `lastConfirmedByRunId/At`.
+  - `settled` is derived from the run's `startedAt` vs `dataCheckedObservedAt`. A settled row that changes is reported back so the run can record `SETTLED_ROW_CHANGED`.
+- **Group members.** They are unique by `entryId`: duplicates are rejected, and `setMembers` is a read-modify-write inside the T2 transaction.
+- **Results** (§7, §8):
+  - `resultRepo` hashes snapshots and actions over their canonical domain form.
+  - `appendAction` chains `seq`/`prevHash`; `movePointer` guards on `headSeq`. A lost race throws `ConcurrentDecisionError` (409 `CONCURRENT_DECISION`).
+  - `verifyChain` walks the audit chain, and `loadTrace` follows gwResults → snapshot `sources[]` → syncRuns `requests[]` → fplRawResponses.
+  - `loadResultInputs` / `ownershipRepo.loadSquads` assemble the analytics inputs. The T4 orchestration itself (a result service) is Step 9.
+
 ## Test
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
-npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions
+npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results
 ```
 
 Integration tests start a 1-node `MongoMemoryReplSet` (MongoDB 8.0.32, set in `server/package.json` → `config.mongodbMemoryServer`). The first run downloads about 100 MB. To use an existing replica set instead, for example the docker one, set `MONGODB_TEST_URI`:
