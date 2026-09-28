@@ -155,7 +155,7 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - `resultSnapshots` and `gwResultActions` are append-only.
   - Points semantics default to `UNVERIFIED`; `CONFLICTED` is preserved.
   - `tieBreakRules` only accepts rules the architecture documents, with the default `FEWER_TRANSFER_COST → HIGHER_SEASON_TOTAL → SHARED`.
-- Repositories arrived in Step 6 (below). There is no sync code yet (Step 7).
+- Repositories arrived in Step 6 and the sync in Step 7 (below).
 
 ## Lease locks (Step 5, `server/src/locks`, `server/src/repositories/lockRepo.js`)
 
@@ -204,11 +204,36 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - `verifyChain` walks the audit chain, and `loadTrace` follows gwResults → snapshot `sources[]` → syncRuns `requests[]` → fplRawResponses.
   - `loadResultInputs` / `ownershipRepo.loadSquads` assemble the analytics inputs. The T4 orchestration itself (a result service) is Step 9.
 
+## Sync (Step 7, `server/src/sync`)
+
+`createSyncService({ client })` provides `syncGroupGameweek({ groupId, season, event, trigger })` and `syncBootstrap({ season })`. It uses the FPL client, the repositories, `db/unitOfWork` and the lease lock, and never touches Mongoose directly.
+
+- **Run lifecycle:**
+  1. Take the lease. If it's held, throw `LockBusyError` (`SYNC_IN_PROGRESS`) and create no run.
+  2. Mark runs left RUNNING under older fencing tokens as `ABANDONED`.
+  3. Insert the `syncRuns` document as RUNNING, then run the stages below.
+  4. Finish as `SUCCESS`, `PARTIAL` or `FAILED` (`ABANDONED` if another instance took the lease over).
+- **Stages:**
+  - **Bootstrap:** T1 (season + events, fenced on `sync:bootstrap`), then players.
+  - **League members:** T2, fenced on the group lease. Members missing from the standings are marked `leftLeague` and never removed. `AUTH_REQUIRED` freezes the member list and makes the run PARTIAL.
+  - **Per member:** fetched concurrently, then one fenced T3 that reconciles the whole season. Picks of other GWs are carried forward. A failed member keeps its previous confirmations, and the run becomes PARTIAL.
+  - **Live** points, once the deadline has passed.
+  - **Semantics evidence.**
+- **Idempotency.** Every write is a content-hash upsert, so a replay only restamps confirmations.
+  - `dataCheckedObservedAt` is the first observation, and is kept while DATA_CHECKED holds.
+  - Semantics evidence comes only from hit rows whose points inputs are new to the database, so replays never double-count.
+- **Provenance:**
+  - Each FPL call is one `syncRuns.requests[]` entry (from the client's `withRequestLog` hook), holding the hash of the exact response bytes. Documents record those hashes in `provenance.sourceRequests`.
+  - `FINALIZE` runs store the history, picks, transfers and live bodies as `FINAL_EVIDENCE`.
+  - A validation failure stores the body as `SCHEMA_FAIL`.
+  - Bootstrap bodies are never stored.
+- **Failure codes:** `BLOCKED` (only with a concrete denial indicator), `AUTH_REQUIRED`, `NOT_FOUND`, `RATE_LIMITED`, `UPSTREAM_UNAVAILABLE`, `UPDATING`, `TIMEOUT`, `NETWORK`, `SCHEMA_FAIL`, `LOCK_LOST`, and others. Blocked and auth decisions reuse the Step 2 smoke classifiers.
+
 ## Test
 
 ```bash
 npm test                 # unit + contract tests (server/test/unit, server/test/contract); no database or network needed
-npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results
+npm run test:integration # server/test/integration: migrations, models, validators, unique indexes, transactions, locks, repositories, T4 results, sync
 ```
 
 Integration tests start a 1-node `MongoMemoryReplSet` (MongoDB 8.0.32, set in `server/package.json` → `config.mongodbMemoryServer`). The first run downloads about 100 MB. To use an existing replica set instead, for example the docker one, set `MONGODB_TEST_URI`:

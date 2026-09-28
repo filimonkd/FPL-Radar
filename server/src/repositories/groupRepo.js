@@ -28,9 +28,9 @@ async function loadHydrated(groupId, session) {
 }
 
 export const groupRepo = {
-  /** Inserts a new active group. `at` stamps createdAt/updatedAt (default: now). */
+  /** Inserts a new active group. `at` stamps createdAt/updatedAt and any member without addedAt (default: now). */
   async create(group, { at = new Date(), session } = {}) {
-    const members = group.members ?? [];
+    const members = (group.members ?? []).map((m) => ({ ...m, addedAt: m.addedAt ?? at }));
     assertUniqueMembers(members);
     const doc = groupToDocument({ ...group, members, isActive: true, archivedAt: null, createdAt: at, updatedAt: at });
     const [created] = await Group.create([doc], sessionOpt(session));

@@ -1,9 +1,9 @@
-import { createHash } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { FplRawResponse, MAX_RAW_BYTES } from '../models/FplRawResponse.js';
 import { rawResponseToDomain, rawResponseToDocument } from './mappers/rawResponse.js';
 import { toObjectId } from './mappers/common.js';
 import { requireTransaction, sessionOpt } from './internal/session.js';
+import { sha256Bytes } from '../utils/canonical.js';
 
 // fplRawResponses (v0.3 §9, §10): insert, unset expiry (T4). Bodies are gzipped;
 // bodySha256 is computed on the raw bytes so it matches syncRuns.requests[].
@@ -13,7 +13,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const RETENTION_DAYS = Object.freeze({ FINAL_EVIDENCE: 14, SCHEMA_FAIL: 30, CHIP_RULES_INVALID: 30, SMOKE: 7 });
 export const RAW_TOO_LARGE = 'RAW_TOO_LARGE';
 
-export const bodySha256 = (bytes) => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+export const bodySha256 = sha256Bytes; // same hash the FPL client logs per request
 
 export const rawResponseRepo = {
   /**

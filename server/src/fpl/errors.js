@@ -21,7 +21,7 @@ const RETRYABLE = new Set([
 ]);
 
 export class FplError extends Error {
-  constructor(kind, message, { status, url, retryAfterMs, issues, cause } = {}) {
+  constructor(kind, message, { status, url, retryAfterMs, issues, cause, response } = {}) {
     super(message, { cause });
     this.name = 'FplError';
     this.kind = kind;
@@ -29,6 +29,9 @@ export class FplError extends Error {
     this.url = url;
     this.retryAfterMs = retryAfterMs;
     this.issues = issues;
+    // The response that caused the error (status, headers of interest, body
+    // text and hash), when one arrived. Non-enumerable so logs stay small.
+    Object.defineProperty(this, 'response', { value: response ?? null, enumerable: false });
   }
 
   get retryable() {

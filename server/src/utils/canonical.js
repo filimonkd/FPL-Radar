@@ -39,3 +39,6 @@ export const canonicalJson = (value) => JSON.stringify(canonicalize(value));
 export const sha256 = (text) => `sha256:${createHash('sha256').update(text, 'utf8').digest('hex')}`;
 
 export const contentHash = (value) => sha256(canonicalJson(value));
+
+// Hash of raw bytes (e.g. an FPL response body) in the same `sha256:<hex>` form.
+export const sha256Bytes = (bytes) => `sha256:${createHash('sha256').update(bytes).digest('hex')}`;

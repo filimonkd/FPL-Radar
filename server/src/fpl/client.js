@@ -6,6 +6,7 @@ import { TtlCache } from './cache.js';
 import { validate } from './validate.js';
 import * as schemas from './schemas.js';
 import { DEFAULT_FPL_API_BASE_URL } from './baseUrl.js';
+import { sha256Bytes } from '../utils/canonical.js';
 
 // FPL API client boundary. Independent of persistence: it only fetches,
 // validates and caches in memory.
@@ -106,6 +107,30 @@ export function createFplClient(options = {}) {
 
       emit({ type: 'response', method: 'GET', url, attempt, status: res.status, durationMs: now() - started });
 
+      let bytes;
+      try {
+        bytes = Buffer.from(await res.arrayBuffer());
+      } catch (err) {
+        if (controller.signal.aborted) {
+          throw new FplError(FplErrorKind.TIMEOUT, `FPL response body timed out after ${timeoutMs}ms`, { url, cause: err });
+        }
+        throw new FplError(FplErrorKind.NETWORK, `FPL body read failed: ${err.message}`, { url, status: res.status, cause: err });
+      }
+      // What the response was, for the sync request log and raw capture (v0.3 §8, §9).
+      const response = {
+        status: res.status,
+        contentType: res.headers.get('content-type'),
+        bodySha256: sha256Bytes(bytes),
+        bytes: bytes.length,
+        body: bytes, // the exact bytes bodySha256 was computed over
+        get text() {
+          return bytes.toString('utf8');
+        },
+        denyReason: res.headers.get('x-deny-reason'),
+        cfMitigated: res.headers.get('cf-mitigated'),
+        location: res.headers.get('location'),
+      };
+
       if (!res.ok) {
         const kind = classifyStatus(res.status);
         throw new FplError(kind, `FPL responded ${res.status} for ${path}`, {
@@ -114,19 +139,18 @@ export function createFplClient(options = {}) {
           retryAfterMs: kind === FplErrorKind.RATE_LIMITED
             ? parseRetryAfter(res.headers.get('retry-after'), now())
             : undefined,
+          response,
         });
       }
 
       try {
-        return await res.json();
+        return { json: JSON.parse(response.text), response };
       } catch (err) {
-        if (controller.signal.aborted) {
-          throw new FplError(FplErrorKind.TIMEOUT, `FPL response body timed out after ${timeoutMs}ms`, { url, cause: err });
-        }
         throw new FplError(FplErrorKind.INVALID_RESPONSE, `FPL returned a non-JSON body for ${path}`, {
           url,
           status: res.status,
           cause: err,
+          response,
         });
       }
     } finally {
@@ -134,11 +158,23 @@ export function createFplClient(options = {}) {
     }
   }
 
-  async function request(name, path) {
+  // One logical call → one request-log entry (retries included in durationMs).
+  // The cache keeps the response metadata with the data, so a cache hit logs the
+  // hash of the bytes that were actually fetched, with fromCache: true.
+  async function request(name, path, log) {
     const key = path;
+    const started = now();
+    const record = (entry) => {
+      if (!log) return;
+      try {
+        log({ name, path, durationMs: Math.max(0, Math.round(now() - started)), ...entry });
+      } catch {
+        // A faulty request logger must never break a request.
+      }
+    };
     try {
       const { value, cached } = await cache.getOrLoad(key, ttl[name], async () => {
-        const body = await withRetry((attempt) => breaker.execute(() => fetchOnce(path, attempt)), {
+        const { json, response } = await withRetry((attempt) => breaker.execute(() => fetchOnce(path, attempt)), {
           policy: retryPolicy,
           sleep,
           random,
@@ -146,48 +182,67 @@ export function createFplClient(options = {}) {
             emit({ type: 'retry', path, attempt, delayMs, errorKind: error.kind, status: error.status }),
         });
 
-        const { ok, data, issues } = validate(schemas[name], body);
+        const { ok, data, issues } = validate(schemas[name], json);
         if (!ok) {
           throw new FplError(FplErrorKind.VALIDATION, `FPL ${name} response failed validation`, {
             url: `${baseUrl}${path}`,
+            status: response.status,
             issues,
+            response,
           });
         }
-        return data;
+        return { data, response };
       });
       if (cached) emit({ type: 'cache_hit', path });
-      return value;
+      record({ ok: true, fromCache: cached, schemaOk: true, response: value.response });
+      return value.data;
     } catch (err) {
       emit({ type: 'error', path, errorKind: err.kind, status: err.status, message: err.message, issues: err.issues });
+      record({
+        ok: false, fromCache: false, schemaOk: err.kind === FplErrorKind.VALIDATION ? false : null, response: err.response ?? null, error: err,
+      });
       throw err;
     }
   }
 
-  return {
-    getBootstrapStatic: async () => request('bootstrapStatic', '/bootstrap-static/'),
+  const methods = (log) => ({
+    getBootstrapStatic: async () => request('bootstrapStatic', '/bootstrap-static/', log),
 
     getFixtures: async ({ event } = {}) =>
-      request('fixtures', event === undefined ? '/fixtures/' : `/fixtures/?event=${positiveInt('event', event)}`),
+      request('fixtures', event === undefined ? '/fixtures/' : `/fixtures/?event=${positiveInt('event', event)}`, log),
 
-    getEventLive: async (event) => request('eventLive', `/event/${positiveInt('event', event)}/live/`),
+    getEventLive: async (event) => request('eventLive', `/event/${positiveInt('event', event)}/live/`, log),
 
-    getEventStatus: async () => request('eventStatus', '/event-status/'),
+    getEventStatus: async () => request('eventStatus', '/event-status/', log),
 
-    getEntry: async (entryId) => request('entry', `/entry/${positiveInt('entryId', entryId)}/`),
+    getEntry: async (entryId) => request('entry', `/entry/${positiveInt('entryId', entryId)}/`, log),
 
-    getEntryHistory: async (entryId) => request('entryHistory', `/entry/${positiveInt('entryId', entryId)}/history/`),
+    getEntryHistory: async (entryId) => request('entryHistory', `/entry/${positiveInt('entryId', entryId)}/history/`, log),
 
     getEntryPicks: async (entryId, event) =>
-      request('entryPicks', `/entry/${positiveInt('entryId', entryId)}/event/${positiveInt('event', event)}/picks/`),
+      request('entryPicks', `/entry/${positiveInt('entryId', entryId)}/event/${positiveInt('event', event)}/picks/`, log),
 
     getEntryTransfers: async (entryId) =>
-      request('entryTransfers', `/entry/${positiveInt('entryId', entryId)}/transfers/`),
+      request('entryTransfers', `/entry/${positiveInt('entryId', entryId)}/transfers/`, log),
 
     getClassicLeagueStandings: async (leagueId, { page = 1 } = {}) =>
       request(
         'classicLeagueStandings',
         `/leagues-classic/${positiveInt('leagueId', leagueId)}/standings/?page_standings=${positiveInt('page', page)}`,
+        log,
       ),
+  });
+
+  return {
+    ...methods(undefined),
+
+    /**
+     * The same endpoint methods, reporting every call to `log(entry)`:
+     * { name, path, ok, durationMs, fromCache, schemaOk, response, error? } where
+     * response = { status, contentType, bodySha256, bytes, body (Buffer), text, denyReason, cfMitigated, location }
+     * (null when no response arrived). Used by the sync to fill syncRuns.requests[].
+     */
+    withRequestLog: (log) => methods(log),
 
     // Introspection for health checks and tests.
     get circuitState() {

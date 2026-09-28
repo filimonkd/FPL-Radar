@@ -78,13 +78,29 @@ test('repositories never open transactions (only db/unitOfWork.js does)', async 
   assert.deepEqual(offenders, []);
 });
 
+// Exception: models/validation/ holds pure shared rules (pickViolations) that the
+// FPL mapper runs too (v0.3 §12 "Pick validation layers").
 test('models/ is imported only by repositories/ (and the models themselves)', async () => {
   const offenders = [];
   for (const file of await jsFiles(SRC_DIR)) {
     const rel = relative(SRC_DIR, file).split('\\').join('/');
     if (rel.startsWith('models/') || rel.startsWith('repositories/')) continue;
     const src = stripComments(await readFile(file, 'utf8'));
-    if (/(?:from\s+|import\s*\(\s*)['"](?:\.\.?\/)+(?:[\w-]+\/)*models\//.test(src)) offenders.push(rel);
+    const imports = [...src.matchAll(/(?:from\s+|import\s*\(\s*)['"]((?:\.\.?\/)+(?:[\w-]+\/)*models\/[^'"]*)['"]/g)].map((m) => m[1]);
+    if (imports.some((i) => !/models\/validation\//.test(i))) offenders.push(rel);
+  }
+  assert.deepEqual(offenders, []);
+});
+
+test('sync, fpl, analytics, audit and routes never import mongoose or the driver', async () => {
+  // db/ is the connection layer, locks/leaseLock.js only makes owner ObjectIds, server.js boots and shuts down.
+  const allowed = /^(db|models|repositories|locks)\/|^server\.js$/;
+  const offenders = [];
+  for (const file of await jsFiles(SRC_DIR)) {
+    const rel = relative(SRC_DIR, file).split('\\').join('/');
+    if (allowed.test(rel)) continue;
+    const src = stripComments(await readFile(file, 'utf8'));
+    if (/(?:from\s+|import\s*\(\s*)['"](mongoose|mongodb)(?:\/[^'"]*)?['"]/.test(src)) offenders.push(rel);
   }
   assert.deepEqual(offenders, []);
 });
