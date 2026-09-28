@@ -12,11 +12,14 @@ export const GW = 5;
 
 const DAY = 86_400_000;
 
-/** History rows → FPL `current[]`. `net: true` rows follow H_net (Δ = R); others H_gross (Δ = R − C). */
+/**
+ * History rows → FPL `current[]`. `net: true` rows follow H_net (Δ = R); others
+ * H_gross (Δ = R − C); `delta` forces Δ (e.g. one that proves neither).
+ */
 export function historyCurrent(rows) {
   let total = 0;
   return rows.map((r) => {
-    total += r.points - (r.net ? 0 : r.cost ?? 0);
+    total += r.delta ?? (r.points - (r.net ? 0 : r.cost ?? 0));
     return {
       event: r.event, points: r.points, total_points: total, event_transfers: r.cost ? 2 : 1, event_transfers_cost: r.cost ?? 0,
       points_on_bench: r.bench ?? 0, bank: 5, value: 1000, overall_rank: 100000,

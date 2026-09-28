@@ -6,6 +6,7 @@ import { runMigrationsLocked } from './db/migrations/locked.js';
 import { createFplClient } from './fpl/index.js';
 import { createSyncService } from './sync/index.js';
 import { createGroupService } from './services/groupService.js';
+import { createResultService } from './services/resultService.js';
 import { createShutdown } from './shutdown.js';
 import mongoose from 'mongoose';
 
@@ -30,8 +31,9 @@ if (!config.ADMIN_PASSWORD_HASH) console.warn('ADMIN_PASSWORD_HASH is not set: a
 const fplClient = createFplClient({ baseUrl: config.FPL_API_BASE_URL });
 const sync = createSyncService({ client: fplClient });
 const groups = createGroupService({ sync });
+const results = createResultService({ sync });
 
-const app = createApp({ config, version, getDbStatus, services: { groups } });
+const app = createApp({ config, version, getDbStatus, services: { groups, results } });
 const server = app.listen(config.PORT, () => {
   console.log(`Server listening on http://localhost:${config.PORT}`);
 });

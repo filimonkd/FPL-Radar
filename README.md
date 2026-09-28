@@ -250,6 +250,28 @@ Pure helpers used by later steps: `src/db/ids.js` (deterministic `_id`s), `src/u
   - Archived groups are read-only (409 `GROUP_ARCHIVED`).
 - **Shutdown.** On SIGTERM/SIGINT the server stops accepting requests. It marks each running sync run `ABANDONED` before releasing that run's lease, so no in-flight work can commit or finish as a success. Then it disconnects. Shutdown is idempotent, and new runs are refused with 503 `SHUTTING_DOWN`.
 
+## Results and finalization (Step 9, `server/src/services/resultService.js`)
+
+- **Reading a result:** `GET /api/groups/:id/gw/:gw/result?season=` returns the current FINAL or OVERRIDDEN snapshot. Before a decision, it computes a PROVISIONAL or BLOCKED preview from stored data instead. It never writes anything, and returns `finalizeGate: { allowed, reasons }` to the admin.
+- **Finalizing:** `POST …/finalize { season }` runs a FINALIZE sync (which stores evidence bodies), then checks the gate, then runs T4. All of this happens under one group lease, and the gate and the writes read the same transaction snapshot.
+  - **The gate** is the unchanged `canFinalize` plus two service rules:
+    - Every eligible member must be confirmed by *this finalize run*. An older SUCCESS run does not count, so a member that failed in the finalize sync blocks it.
+    - Reconciled hit rows (C > 0) need verified season semantics that match the row: a CONFLICTED season blocks with `SEMANTICS_CONFLICTED`, and an UNVERIFIED one with `SEMANTICS_UNVERIFIED`. Rows with C = 0 don't depend on semantics.
+  - **A blocked finalize** returns 409 `FINALIZE_BLOCKED` with the reasons and the members involved, and writes no decision.
+  - **Repeating a finalize** with identical inputs returns the existing result (200, `replayed: true`) without writing a second decision.
+- **T4:** fence → read the current result → verify the decision chain → gate → `insertSnapshot` → `appendAction` → `movePointer` → retain the source runs and evidence bodies. It is one `db/unitOfWork` transaction, so any failure rolls it all back.
+  - Two simultaneous finalizes give one decision and one 409 `SYNC_IN_PROGRESS`.
+  - A stale lease holder fails the fence and commits nothing.
+- **Override and recompute:**
+  - `POST …/override { season, winners, note }` declares winners with a mandatory note.
+  - `POST …/recompute { season, dryRun, note? }` re-runs the rules. A dry run returns the diff and writes nothing; a commit that changes the winners needs a note.
+- **History, verification and provenance:**
+  - `GET …/actions` lists the decision history; `GET …/actions/verify` checks the hash chain.
+  - `GET /api/result-snapshots/:id` returns the immutable snapshot, including the engine inputs, standings, decision trace, warnings and sources.
+  - `…/verify` re-runs the engine on the stored inputs and compares.
+  - `…/trace` follows the snapshot to its runs, request log and raw bodies.
+- **Access:** share-token viewers can read their own group's results, history and snapshots; every decision is admin-only.
+
 ## Test
 
 ```bash

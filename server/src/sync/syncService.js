@@ -103,12 +103,12 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
    * FAILED, then its error is rethrown to the caller (used by the API-facing
    * member jobs, whose validation failures become 4xx responses).
    */
-  async function runJob({ lockId, job, target, season = null, event = null, trigger, rethrow = false }, body) {
+  async function runJob({ lockId, job, target, season = null, event = null, trigger, rethrow = false, after = null }, body) {
     if (closing) throw new ShuttingDownError();
     const lease = await tryAcquireLease(lockId, { ttlMs: leaseTtlMs });
     if (!lease) throw new LockBusyError(lockId);
     const runId = String(lease.owner); // the lease owner is the run id (v0.3 §3 locks row)
-    active.set(runId, { lease });
+    active.set(runId, { lease, hasRun: true });
     const out = { warnings: [], failures: [], partial: false, stats: {} };
     let run;
     try {
@@ -138,22 +138,57 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
       out.failures.push(failureOf(err, { stage: err?.stage ?? null }));
       status = 'FAILED';
     } finally {
-      lease.stopHeartbeat();
+      if (!after) lease.stopHeartbeat();
       await recorder.flush();
       if (recorder.writeErrors.length) out.warnings.push({ code: 'REQUEST_LOG_WRITE_FAILED', detail: { count: recorder.writeErrors.length } });
     }
+    let afterResult;
+    let afterError = null;
     try {
       // finish() only moves a RUNNING run: a run already ABANDONED (takeover or
       // shutdown) can never be turned into a success afterwards.
       const finished = await syncRunRepo.finish(runId, { status, warnings: out.warnings, failures: out.failures, finishedAt: clock() });
       if (!finished) status = (await syncRunRepo.get(runId))?.status ?? status;
+      // `after` runs on the finished, truthful run while the same lease is still
+      // held and heartbeating (finalize: sync → gate → T4 under one lease, v0.3 §5).
+      if (after) {
+        try {
+          afterResult = await after(ctx, { runId, status, warnings: out.warnings, failures: out.failures, stats: out.stats });
+        } catch (err) {
+          afterError = err;
+        }
+      }
     } finally {
+      lease.stopHeartbeat();
       await lease.release().catch(() => {});
       active.delete(runId);
     }
+    if (afterError) throw afterError;
     if (rethrow && failure) throw failure;
     if (rethrow && status !== 'SUCCESS') throw new SyncStageError(status === 'ABANDONED' ? 'RUN_ABANDONED' : 'RUN_FAILED', `run ${runId} ended ${status}`);
-    return { runId, status, warnings: out.warnings, failures: out.failures, stats: out.stats, result };
+    return { runId, status, warnings: out.warnings, failures: out.failures, stats: out.stats, result, after: afterResult };
+  }
+
+  /**
+   * Holds a group lease without a sync run (override / recompute decide on stored
+   * data, v0.2 §4). Busy → LockBusyError; shutdown releases it like any other.
+   */
+  async function withGroupLease(groupId, fn) {
+    if (closing) throw new ShuttingDownError();
+    const lockId = lockKeys.group(groupId);
+    const lease = await tryAcquireLease(lockId, { ttlMs: leaseTtlMs });
+    if (!lease) throw new LockBusyError(lockId);
+    const key = `lease:${lease.owner}`;
+    active.set(key, { lease, hasRun: false });
+    lease.startHeartbeat({ intervalMs: heartbeatMs });
+    try {
+      if (closing) throw new ShuttingDownError();
+      return await fn(lease);
+    } finally {
+      lease.stopHeartbeat();
+      await lease.release().catch(() => {});
+      active.delete(key);
+    }
   }
 
   /**
@@ -164,11 +199,11 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
   function shutdown() {
     closing ??= (async () => {
       const abandoned = [];
-      for (const [runId, { lease }] of active) {
+      for (const [runId, { lease, hasRun }] of active) {
         lease.stopHeartbeat();
-        await syncRunRepo.markAbandoned(lease.lockId, lease.fencingToken + 1, { at: clock() }).catch(() => {});
+        if (hasRun) await syncRunRepo.markAbandoned(lease.lockId, lease.fencingToken + 1, { at: clock() }).catch(() => {});
         await lease.release().catch(() => {});
-        abandoned.push(runId);
+        if (hasRun) abandoned.push(runId);
       }
       return { abandoned };
     })();
@@ -490,7 +525,7 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     addMembers,
     shutdown,
     get activeRuns() {
-      return [...active.keys()];
+      return [...active].filter(([, v]) => v.hasRun).map(([runId]) => runId);
     },
 
     /** Bootstrap-only job under the sync:bootstrap lease (T1 + players). */
@@ -506,22 +541,37 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
      * @returns {Promise<{ runId: string, status: string, warnings: object[], failures: object[], stats: object }>}
      */
     async syncGroupGameweek({ groupId, season, event, trigger = 'MANUAL' }) {
-      const group = await groupRepo.getById(groupId);
-      if (!group) throw new NotFoundError('group', groupId);
-      if (!group.isActive) throw new GroupArchivedError(groupId);
-      ids.event(season, event); // validates season / event before taking the lease
-      return runJob({ lockId: lockKeys.group(groupId), job: 'group-gw', target: String(groupId), season, event, trigger }, async (ctx) => {
-        const { bootstrap, events } = await bootstrapStage(ctx, { ownsBootstrapLease: false }).catch(stageError('bootstrap'));
-        if (!events.some((e) => e.gw === event)) throw new SyncStageError('UNKNOWN_EVENT', `GW ${event} is not in bootstrap`);
-        const members = await membersStage(ctx, groupId).catch(stageError('members'));
-        const evidence = await membersSyncStage(ctx, members, events);
-        await liveStage(ctx, bootstrap, events);
-        if (evidence.gross + evidence.net > 0) {
-          await ensureLease(ctx.lease);
-          ctx.out.stats.semantics = await seasonRepo.applySemanticsEvidence(season, evidence, ctx.run.id);
-        }
-        ctx.out.stats.evidence = evidence;
-      });
+      return syncGroup({ groupId, season, event, trigger });
     },
+
+    /**
+     * Finalize path (v0.2 §15, v0.3 §5): a FINALIZE-trigger sync, then
+     * `after(ctx, run)` on the finished run while the same group lease is held.
+     * The result is `after`'s return value; its errors propagate.
+     */
+    async syncGroupGameweekThen({ groupId, season, event, trigger = 'FINALIZE' }, after) {
+      return (await syncGroup({ groupId, season, event, trigger, after })).after;
+    },
+
+    withGroupLease,
   };
+
+  async function syncGroup({ groupId, season, event, trigger, after = null }) {
+    const group = await groupRepo.getById(groupId);
+    if (!group) throw new NotFoundError('group', groupId);
+    if (!group.isActive) throw new GroupArchivedError(groupId);
+    ids.event(season, event); // validates season / event before taking the lease
+    return runJob({ lockId: lockKeys.group(groupId), job: 'group-gw', target: String(groupId), season, event, trigger, after }, async (ctx) => {
+      const { bootstrap, events } = await bootstrapStage(ctx, { ownsBootstrapLease: false }).catch(stageError('bootstrap'));
+      if (!events.some((e) => e.gw === event)) throw new SyncStageError('UNKNOWN_EVENT', `GW ${event} is not in bootstrap`);
+      const members = await membersStage(ctx, groupId).catch(stageError('members'));
+      const evidence = await membersSyncStage(ctx, members, events);
+      await liveStage(ctx, bootstrap, events);
+      if (evidence.gross + evidence.net > 0) {
+        await ensureLease(ctx.lease);
+        ctx.out.stats.semantics = await seasonRepo.applySemanticsEvidence(season, evidence, ctx.run.id);
+      }
+      ctx.out.stats.evidence = evidence;
+    });
+  }
 }
