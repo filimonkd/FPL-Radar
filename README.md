@@ -15,7 +15,7 @@ Monorepo for FPL Radar: an Express + Mongoose API (`server/`) and a React + Vite
 ```
 .
 ├── .github/workflows/ CI: npm ci, npm test, npm run build (Node from .node-version)
-├── client/            React 19 + Vite 8 + Tailwind 4 (health page only)
+├── client/            React 19 + Vite 8 + Tailwind 4 + React Router 7 + TanStack Query 5 (Step 13 UI)
 ├── server/            Express 5 + Mongoose 9 + zod 4
 │   ├── scripts/       dbPing.js
 │   ├── src/analytics/ pure layer (placeholder; no db imports allowed)
@@ -327,6 +327,40 @@ Production is one Render free web service (Frankfurt) serving the API and the bu
 - **`npm run smoke:deploy -- <url> [season]`:** read-only checks against a running instance. `TICK_SECRET` and `SMOKE_ADMIN_PASSWORD` in the environment enable the tick and login checks.
 - **`npm run check:bundle`:** fails if `client/dist` contains server env names, connection strings, hashes, JWTs, keys or direct FPL URLs. CI runs it after the build.
 - **`.github/workflows/backup.yml`:** weekly on Monday at 06:00 UTC, plus manual runs. It needs repository secrets and `ops/backup.pub`; see the runbook §5.
+
+## Client UI (Step 13, `client/src`)
+
+The browser app for the APIs above, served by Express from the same origin in production (Vite proxies `/api` in development). It is mobile-first, since results are meant to be finalized from a phone. There are no new API features: every screen reads or calls an existing endpoint through `client/src/lib/api.js`.
+
+- **Sign-in** (`/login`): the admin password only, never an FPL login. The session is the server's HttpOnly cookie, which scripts can't read.
+- **Viewers** (`/share#<token>`): the share token stays in the URL fragment, so it never reaches the server or its logs. It is kept in `localStorage`, sent as `X-Share-Token`, and removed from the address bar. Viewers get read-only Results, Ownership and Chips for their group only.
+- **Groups** (`/`): active groups, plus a collapsed Archived section with Unarchive.
+- **New group** (`/groups/new`):
+  - from a classic league, with a Preview that shows the server's access classification (OK / AUTH_REQUIRED / EMPTY / NOT_FOUND) and points AUTH_REQUIRED leagues to manual mode;
+  - or from manual entry IDs, checked against FPL;
+  - winner rule, "me", and the tie-break chain (documented rules only; SHARED is always last).
+- **Results** (`/groups/:id/results?season=&gw=`):
+  - status, event state, and the winners, with a "shared" badge for shared wins;
+  - standings with "=" ranks, a tap-to-explain tie-break icon and reconciliation badges;
+  - warnings and blocked-by rows;
+  - the finalize gate's reasons in plain words;
+  - admin actions: sync, finalize, override (winners + a 3–280 character note), and recompute (preview diff, then commit; a note is required if the winners change);
+  - a **History drawer**, newest first, with the **chain badge** from `/actions/verify`, notes, and snapshot and run links;
+  - **Copy announcement**, and the **trace path** (`/snapshots/:id`): content-hash and reproduction checks, source runs, request hashes and retained evidence.
+- **Ownership:**
+  - picked/effective toggle, and rivals/everyone when "me" is set;
+  - denominators and managers not counted are always shown;
+  - captaincy (picked vs effective) and transfers.
+- **Chips:** the rule-source badge, this GW's chip state per manager (never "no chip" from missing data), and availability per window.
+- **Settings** (admin):
+  - name, winner rule, "me" and tie-breaks;
+  - exclude/include members (members are never removed) and add entry IDs;
+  - switch a league group to manual members;
+  - create, rotate or revoke the share link;
+  - archive or unarchive.
+- **Status** (admin): points semantics exactly as stored, chip-rule source, the storage gauge, recent runs with each run's request log, and smoke verdicts.
+
+Season and gameweek live in the URL. The default season comes from the date (seasons start in July/August) and the default gameweek is FPL's current one.
 
 ## Test
 

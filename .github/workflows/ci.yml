@@ -22,10 +22,12 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .cache/mongodb-binaries
-          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('server/package.json') }}
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('server/package.json', 'client/package.json') }}
       - run: npm ci
       # Build first: the production-process integration test serves client/dist.
       - run: npm run build
       - run: npm run check:bundle
       - run: npm test
+      # Headless Chromium for the client's browser test (version pinned by playwright-core in client/package.json).
+      - run: npx playwright-core install --with-deps chromium
       - run: npm run test:integration

@@ -24,6 +24,7 @@ test('runtime versions: Node 22, Mongoose 9 (its own driver), MongoDB 8.0 everyw
   assert.match(server.dependencies.mongoose, /^9\./);
   assert.equal(server.dependencies.mongodb, undefined, 'no separately installed driver');
   assert.match(server.config.mongodbMemoryServer.version, /^8\.0\./);
+  assert.equal(json('client/package.json').config.mongodbMemoryServer.version, server.config.mongodbMemoryServer.version, 'client browser test uses the same mongod');
   assert.match(read('docker-compose.yml'), /image: mongo:8\.0\b/);
   assert.match(read('.github/workflows/backup.yml'), /image: mongo:8\.0\b/);
   const lock = json('package-lock.json');

@@ -9,16 +9,27 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test \"test/unit/**/*.test.js\"",
+    "test:integration": "node --test --test-concurrency=1 \"test/e2e/**/*.test.js\""
   },
   "dependencies": {
+    "@tanstack/react-query": "5.104.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-router": "7.18.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-react": "6.1.1",
+    "playwright-core": "1.56.1",
     "tailwindcss": "4.3.3",
     "vite": "8.3.0"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "8.0.32",
+      "disablePostinstall": "1"
+    }
   }
 }
