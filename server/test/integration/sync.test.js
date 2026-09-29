@@ -199,6 +199,19 @@ test('a season without hits stays UNVERIFIED', async () => {
   assert.ok(!w2.calls.some((p) => p.startsWith('/leagues-classic/')), 'MANUAL groups use the stored member list');
 });
 
+test('negative bench points from FPL are stored as reported, not rejected', async () => {
+  // Real FPL data: a benched player's card or own goal makes points_on_bench -1.
+  const w = createWorld({ seasonStartYear: 2028, entries: [301, 302] });
+  w.state.entries[301].rows = w.state.entries[301].rows.map((r) => (r.event === GW ? { ...r, bench: -1 } : r));
+  w.state.entries[301].rows[1] = { ...w.state.entries[301].rows[1], bench: -3 };
+  const s = createSyncService({ client: worldClient(w), clock: tickingClock(new Date('2028-09-22T19:00:00Z')) });
+  const g = await groupRepo.create({ name: 'Bench', slug: 'bench-2028', memberSource: 'MANUAL', winnerRule: 'NET_POINTS', members: [{ entryId: 301 }, { entryId: 302 }] });
+  const r = await s.syncGroupGameweek({ groupId: g.id, season: '2028-29', event: GW });
+  assert.equal(r.status, 'SUCCESS', JSON.stringify(r.failures));
+  const rows = await managerGameweekRepo.listForEntry('2028-29', 301);
+  assert.deepEqual(rows.map((x) => [x.event, x.pointsOnBench]), [[1, 0], [2, -3], [3, 0], [4, 0], [5, -1]]);
+});
+
 test('a partial member failure isolates that member and records the run accurately', async () => {
   const prevRun = runs.at(-1).runId;
   world.overrides.set('/entry/102/history/', new Response('{"detail":"oops"}', { status: 500 }));

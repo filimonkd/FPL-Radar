@@ -48,7 +48,7 @@ const managerGameweekSchema = new Schema({
   event: intField({ required: true, min: 1, max: 38 }),
   points: { type: pointsSchema, required: true },
   eventTransfers: intField({ default: 0, min: 0 }),
-  pointsOnBench: intField({ default: 0, min: 0 }),
+  pointsOnBench: intField({ default: 0 }), // can be negative: a benched player's cards or own goals count (FPL reported -1)
   overallRank: intField({ default: null }),
   bankTenths: intField({ default: null }),
   teamValueTenths: intField({ default: null }),
