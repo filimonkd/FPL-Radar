@@ -25,7 +25,8 @@
     "auth:hash": "npm run auth:hash -w server",
     "db:check": "npm run db:check -w server",
     "check:bundle": "npm run check:bundle -w server",
-    "smoke:deploy": "npm run smoke:deploy -w server --"
+    "smoke:deploy": "npm run smoke:deploy -w server --",
+    "db:seed": "npm run db:seed -w server --"
   },
   "devDependencies": {
     "concurrently": "10.0.5"

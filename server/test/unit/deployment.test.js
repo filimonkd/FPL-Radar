@@ -32,6 +32,13 @@ test('runtime versions: Node 22, Mongoose 9 (its own driver), MongoDB 8.0 everyw
   assert.match(lock.packages['node_modules/mongodb'].version, /^7\./, 'the driver Mongoose 9 ships');
 });
 
+test('dev watches only server/src (no restart loops from node_modules, .env or sync tools); seed is local-only', () => {
+  const scripts = json('server/package.json').scripts;
+  assert.equal(scripts.dev, 'node --watch-path=./src --env-file=../.env src/server.js');
+  assert.equal(scripts['db:seed'], 'node --env-file-if-exists=../.env scripts/seedFromSamples.js');
+  assert.equal(json('package.json').scripts['db:seed'], 'npm run db:seed -w server --');
+});
+
 test('production Mongo connection options (v0.3 §11)', () => {
   assert.equal(CONNECTION_OPTIONS.serverSelectionTimeoutMS, 10_000);
   assert.equal(CONNECTION_OPTIONS.autoIndex, false);

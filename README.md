@@ -48,10 +48,19 @@ npm run db:down      # stop (data is kept)
 ## Run
 
 ```bash
-npm run dev          # API on :4000 (node --watch) + client on :5173 (Vite, proxies /api)
+npm run dev          # API on :4000 (node --watch-path=./src) + client on :5173 (Vite, proxies /api)
 npm start            # API without watch
 npm run build        # client production build
+npm run db:seed      # load the committed FPL samples into your local DB (add -- --finalize to decide the GW)
 ```
+
+- **Watching:** the API restarts only when a file under `server/src` changes. Changes in `node_modules`, `.env`, or files touched by sync tools (OneDrive, Dropbox) or antivirus don't restart it. Restart `npm run dev` yourself after editing `.env`.
+- **Signing in:** there's no default password. Run `npm run auth:hash`, put the printed hash in `.env` as `ADMIN_PASSWORD_HASH='…'`, restart, and sign in at http://localhost:5173/login with the password itself.
+- **Sample data** (`npm run db:seed`):
+  - It creates a "Sample league" group from the committed, anonymized contract samples (`server/fpl-contract/2026-27`) and syncs it through the real sync path with a sample-only FPL client. It never calls FPL, so the UI has data offline.
+  - Only one team was fully sampled, so every member reuses that team's sampled data under its own anonymized name. They tie, and GW5 is a shared win.
+  - Re-running is a replay.
+  - It refuses `NODE_ENV=production`, and refuses `mongodb+srv://` targets unless you pass `--allow-remote`.
 
 Health check:
 
