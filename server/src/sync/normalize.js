@@ -84,7 +84,22 @@ export const playersOf = (bootstrap, season) => [...bootstrap.elements].sort(byI
   priceTenths: p.now_cost,
   status: typeof p.status === 'string' ? p.status : null,
   epNextTenths: tenthsOf(p.ep_next),
+  news: typeof p.news === 'string' && p.news.trim() !== '' ? p.news : null,
+  newsAdded: validDate(p.news_added),
+  chanceNext: intOrNull(p.chance_of_playing_next_round),
+  selectedByTenths: tenthsOf(p.selected_by_percent),
+  formTenths: tenthsOf(p.form),
+  ppgTenths: tenthsOf(p.points_per_game),
+  totalPoints: intOrNull(p.total_points),
+  minutes: intOrNull(p.minutes),
+  costChangeEventTenths: intOrNull(p.cost_change_event),
+  costChangeStartTenths: intOrNull(p.cost_change_start),
+  transfersInEvent: intOrNull(p.transfers_in_event),
+  transfersOutEvent: intOrNull(p.transfers_out_event),
 }));
+
+const intOrNull = (v) => (Number.isInteger(v) ? v : null);
+const validDate = (v) => { const d = v == null ? null : new Date(v); return d && !Number.isNaN(d.getTime()) ? d : null; };
 
 /** FPL decimal strings ("6.0") → integer tenths; anything unparsable → null. */
 export function tenthsOf(value) {

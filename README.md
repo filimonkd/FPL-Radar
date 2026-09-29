@@ -407,6 +407,19 @@ The baseline is your form, or the group average if "me" isn't set.
 
 "Me" (group Settings) turns on the differentials, overlap, head-to-head and closest-rival views. Players are identified by FPL's own data: `ep_next` is stored on players (`epNextTenths`) from each bootstrap sync.
 
+## Player data (Step 17)
+
+Groundwork for the news tracker, differential finder, transfer simulator and wildcard planner. No page uses it yet, and nothing existing changes.
+
+- **More player data.** Each bootstrap sync now also stores FPL's status, news and its timestamp, chance of playing, global ownership %, form, points per game, season points and minutes, price changes (this GW and since the start) and this GW's transfers in and out.
+- **Per-GW history.** Group syncs (manual or scheduled, never FINALIZE runs) fill in points and minutes for every finished, data-checked GW before the current one that isn't stored yet, one `/event/{gw}/live/` request per GW. After the first run it makes no requests. A failed request is a warning (`HISTORY_BACKFILL_INCOMPLETE`) and the rest is retried next time; results never depend on it.
+- **Shared stats** (`server/src/analytics/playerStats.js`, pure):
+  - points and minutes over the last 3, 5 and 10 GWs;
+  - rotation risk: under 60 minutes in 2 of the last 3 games, blank GWs skipped, unknown with fewer than 3 games;
+  - the team's next 3 GWs with FDR, doubles and blanks;
+  - FPL selling price (you keep half of any rise, rounded down).
+- **API.** `GET /api/seasons/:season/players?event=` (admin or any group viewer, read-only) returns every player with those fields. `event` defaults to the current GW. Form windows only count finished GWs, so a GW in progress never looks like a bad week.
+
 ## Test
 
 ```bash

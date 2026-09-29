@@ -39,6 +39,21 @@ const element = obj({
   // FPL's own expected points for the next GW, as a decimal string ("6.0");
   // observed on every element. Optional so its absence never fails a sync.
   ep_next: z.string().nullable().optional(),
+  // Step 17 player intel, all observed in the 2026-27 sample. Optional so a
+  // missing field never fails a sync; unparsable values are stored as null.
+  status: z.string().nullable().optional(),
+  news: z.string().nullable().optional(),
+  news_added: z.string().nullable().optional(),
+  chance_of_playing_next_round: z.int().nullable().optional(),
+  selected_by_percent: z.string().nullable().optional(),
+  form: z.string().nullable().optional(),
+  points_per_game: z.string().nullable().optional(),
+  total_points: z.int().nullable().optional(),
+  minutes: z.int().nullable().optional(),
+  cost_change_event: z.int().nullable().optional(),
+  cost_change_start: z.int().nullable().optional(),
+  transfers_in_event: z.int().nullable().optional(),
+  transfers_out_event: z.int().nullable().optional(),
 });
 
 const elementType = obj({

@@ -18,7 +18,7 @@ const ROUND_TRIPS = [
     map.groupToDomain, map.groupToDocument],
   ['manager', () => withId(docs.manager(), 100001), map.managerToDomain, map.managerToDocument],
   ['event', () => withId(docs.event(), '2026-27:5'), map.eventToDomain, map.eventToDocument],
-  ['player', () => withId(docs.player({ status: 'a', epNextTenths: 45 }), '2026-27:351'), map.playerToDomain, map.playerToDocument],
+  ['player', () => withId(docs.player({ status: 'd', epNextTenths: 45, news: 'Knock - 75% chance of playing', newsAdded: new Date('2026-09-20T10:00:00Z'), chanceNext: 75, selectedByTenths: 123, formTenths: 51, ppgTenths: 48, totalPoints: 29, minutes: 410, costChangeEventTenths: -1, costChangeStartTenths: 2, transfersInEvent: 1200, transfersOutEvent: 3400 }), '2026-27:351'), map.playerToDomain, map.playerToDocument],
   ['managerGameweek', () => withId(docs.managerGameweek(), '2026-27:100001:5'), map.managerGameweekToDomain, map.managerGameweekToDocument],
   ['managerSeason', () => withId(docs.managerSeason(), '2026-27:100001'), map.managerSeasonToDomain, map.managerSeasonToDocument],
   ['liveGameweek', () => withId(docs.liveGameweek(), '2026-27:5'), map.liveToDomain, map.liveToDocument],

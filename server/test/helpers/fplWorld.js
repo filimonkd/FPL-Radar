@@ -77,6 +77,12 @@ export function createWorld({ seasonStartYear = 2026, entries = ENTRIES } = {}) 
     }
     if (path === '/fixtures/') return state.fixtures;
     if (path === `/event/${GW}/live/`) return { elements: state.live };
+    const lm = /^\/event\/(\d+)\/live\/$/.exec(path);
+    if (lm && Number(lm[1]) < GW && state.history !== false) {
+      // Earlier finished GWs (Step 17 backfill): same players, that GW's own fixtures.
+      const g = Number(lm[1]);
+      return { elements: state.live.map((el) => ({ ...el, stats: { ...el.stats, total_points: Math.max(0, el.stats.total_points - (GW - g)) }, explain: [{ fixture: g * 2 - 1 + ((el.id - 1) % 2), stats: [] }] })) };
+    }
     let m = /^\/leagues-classic\/(\d+)\/standings\/\?page_standings=(\d+)$/.exec(path);
     if (m && Number(m[1]) === LEAGUE) {
       const page = Number(m[2]);

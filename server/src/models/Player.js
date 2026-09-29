@@ -14,6 +14,19 @@ const playerSchema = new Schema({
   priceTenths: intField({ required: true, min: 0 }), // FPL now_cost
   status: { type: String, default: null },
   epNextTenths: intField({ default: null }), // FPL ep_next ×10 (expected points next GW)
+  // Step 17 player intel from bootstrap (null = not reported). Tenths for FPL's decimal strings.
+  news: { type: String, default: null },
+  newsAdded: { type: Date, default: null },
+  chanceNext: intField({ default: null, min: 0, max: 100 }),
+  selectedByTenths: intField({ default: null }),
+  formTenths: intField({ default: null }),
+  ppgTenths: intField({ default: null }),
+  totalPoints: intField({ default: null }),
+  minutes: intField({ default: null }),
+  costChangeEventTenths: intField({ default: null }),
+  costChangeStartTenths: intField({ default: null }),
+  transfersInEvent: intField({ default: null }),
+  transfersOutEvent: intField({ default: null }),
   provenance: { type: provenanceSchema, required: true },
 }, { ...MODEL_OPTIONS, collection: 'players' });
 

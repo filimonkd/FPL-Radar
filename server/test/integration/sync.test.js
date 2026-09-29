@@ -68,7 +68,10 @@ test('a first group sync writes every collection and ends SUCCESS', async () => 
   assert.equal(run.lockId, lockKeys.group(group.id));
   assert.ok(run.finishedAt instanceof Date);
   // bootstrap + fixtures + 2 standings pages + 3 × (entry, history, picks, transfers) + live
-  assert.equal(run.requests.length, 17);
+  // + the one-time Step 17 history backfill of finished GW1–4.
+  assert.equal(run.requests.length, 21);
+  assert.deepEqual(run.requests.filter((q) => /^\/event\/\d+\/live\/$/.test(q.path)).map((q) => q.path).sort(), ['/event/1/live/', '/event/2/live/', '/event/3/live/', '/event/4/live/', '/event/5/live/']);
+  assert.deepEqual(r.stats.history, { missing: 4, filled: 4 });
   for (const q of run.requests) {
     assert.match(q.bodySha256, /^sha256:[a-f0-9]{64}$/);
     assert.equal(q.schemaOk, true);
@@ -122,10 +125,15 @@ test('repeated identical syncs are idempotent and never double-count semantics e
   assert.deepEqual(r3.stats.evidence, { gross: 0, net: 0 });
   assert.deepEqual(await dump(), before, 'a replay changes nothing but confirmation stamps');
   assert.deepEqual((await seasonRepo.get(SEASON)).pointsSemantics, { value: 'GROSS_BEFORE_HITS', evidenceRows: 1, conflictRows: 0, firstVerifiedRunId: runs[0].runId });
-  for (const c of ['managerGameweeks', 'managers', 'events', 'players', 'liveGameweeks']) {
+  for (const c of ['managerGameweeks', 'managers', 'events', 'players']) {
     assert.equal(await raw(c).countDocuments({ 'provenance.lastConfirmedByRunId': oid(r3.runId) }), await raw(c).countDocuments(), `${c} confirmed by the latest run`);
     assert.equal(await raw(c).countDocuments({ 'provenance.lastChangedByRunId': oid(r3.runId) }), 0, `${c} not changed by a replay`);
   }
+  // Live data: the synced GW is re-confirmed; finished, complete GWs are not re-fetched (Step 17).
+  assert.deepEqual(r3.stats.history, { missing: 0, filled: 0 });
+  assert.equal(await raw('liveGameweeks').countDocuments({ 'provenance.lastConfirmedByRunId': oid(r3.runId) }), 1);
+  assert.equal(await raw('liveGameweeks').countDocuments({ 'provenance.lastChangedByRunId': oid(r3.runId) }), 0);
+  assert.equal(await raw('liveGameweeks').countDocuments(), 5);
   // Rows confirmed after DATA_CHECKED was observed are now settled.
   assert.equal((await raw('managerGameweeks').findOne({ _id: `${SEASON}:101:5` })).provenance.settled, true);
 });
@@ -197,6 +205,29 @@ test('a season without hits stays UNVERIFIED', async () => {
   const rows = await managerGameweekRepo.listForEntry('2027-28', 201);
   assert.ok(rows.every((x) => x.points.pointsSemantics === 'UNVERIFIED' && x.points.reconciliationStatus === 'RECONCILED_NO_COST'));
   assert.ok(!w2.calls.some((p) => p.startsWith('/leagues-classic/')), 'MANUAL groups use the stored member list');
+});
+
+test('history backfill: never on FINALIZE runs; an FPL failure is a warning, not a failed sync', async () => {
+  const w = createWorld({ seasonStartYear: 2029, entries: [401, 402] });
+  const s = createSyncService({ client: worldClient(w), clock: tickingClock(new Date('2029-09-22T19:00:00Z')) });
+  const g = await groupRepo.create({ name: 'History', slug: 'history-2029', memberSource: 'MANUAL', winnerRule: 'NET_POINTS', members: [{ entryId: 401 }, { entryId: 402 }] });
+  const fin = await s.syncGroupGameweek({ groupId: g.id, season: '2029-30', event: GW, trigger: 'FINALIZE' });
+  assert.equal(fin.status, 'SUCCESS');
+  assert.equal(fin.stats.history, undefined, 'no backfill stage on a FINALIZE run');
+  assert.ok(!w.calls.some((p) => /^\/event\/[1-4]\/live\/$/.test(p)), 'no earlier GW fetched (its body would be kept as evidence)');
+
+  w.state.history = false; // FPL answers 404 for earlier GWs
+  const man = await s.syncGroupGameweek({ groupId: g.id, season: '2029-30', event: GW });
+  assert.equal(man.status, 'SUCCESS', 'results do not depend on history');
+  assert.deepEqual(man.failures, []);
+  assert.deepEqual(man.warnings.filter((x) => x.code === 'HISTORY_BACKFILL_INCOMPLETE').map((x) => [x.detail.gw, x.detail.failure]), [[1, 'NOT_FOUND']], 'stops at the first failure');
+  assert.deepEqual(man.stats.history, { missing: 4, filled: 0 });
+
+  w.state.history = true;
+  const again = await s.syncGroupGameweek({ groupId: g.id, season: '2029-30', event: GW });
+  assert.deepEqual(again.stats.history, { missing: 4, filled: 4 }, 'filled on the next sync');
+  const gws = (await t.db.collection('liveGameweeks').find({ season: '2029-30' }).toArray()).map((d) => d.gw).sort();
+  assert.deepEqual(gws, [1, 2, 3, 4, 5]);
 });
 
 test('negative bench points from FPL are stored as reported, not rejected', async () => {

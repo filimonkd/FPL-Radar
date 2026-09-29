@@ -416,6 +416,39 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
     }
   }
 
+  // ── stage 6: player history backfill (Step 17) ─────────────────────────
+  /**
+   * Fetches live data for finished, data-checked GWs before the synced one
+   * whose stored live data is missing or incomplete, so per-player points and
+   * minutes exist for every finished GW. After the first run this makes no
+   * requests. Skipped on FINALIZE runs (whose live responses are kept as
+   * evidence). A failure is a warning, never a failed run: results do not
+   * depend on it.
+   */
+  async function historyStage(ctx, bootstrap, events, trigger) {
+    const { recorder, out, lease, season, event, write } = ctx;
+    if (trigger === 'FINALIZE') return;
+    const complete = new Set(await liveRepo.listSettledGws(season));
+    const todo = events.filter((e) => e.gw < event && e.finished && e.dataChecked && !complete.has(e.gw)).map((e) => e.gw);
+    const teamOf = new Map(bootstrap.elements.map((p) => [p.id, p.team]));
+    let filled = 0;
+    for (const gw of todo) {
+      try {
+        const live = await recorder.fetch((c) => c.getEventLive(gw));
+        const ev = events.find((e) => e.gw === gw);
+        await ensureLease(lease);
+        await liveRepo.replace({ season, gw, elements: liveElementsOf(live.data, ev.fixtures, teamOf) }, write(), { sourceRequests: { live: live.hash } });
+        filled += 1;
+      } catch (err) {
+        if (err?.code === 'LOCK_LOST') throw err;
+        const f = failureOf(err, { stage: 'history' });
+        out.warnings.push({ code: 'HISTORY_BACKFILL_INCOMPLETE', detail: { gw, failure: f.code, message: f.message } });
+        break; // FPL trouble: try the rest on the next sync
+      }
+    }
+    out.stats.history = { missing: todo.length, filled };
+  }
+
   // ── group membership (T2) jobs used by the group API ───────────────────
   const direct = { fetch: async (call) => ({ data: await call(client), hash: null }) };
 
@@ -570,6 +603,7 @@ export function createSyncService({ client, clock = () => new Date(), leaseTtlMs
       const members = await membersStage(ctx, groupId).catch(stageError('members'));
       const evidence = await membersSyncStage(ctx, members, events);
       await liveStage(ctx, bootstrap, events);
+      await historyStage(ctx, bootstrap, events, trigger);
       if (evidence.gross + evidence.net > 0) {
         await ensureLease(ctx.lease);
         ctx.out.stats.semantics = await seasonRepo.applySemanticsEvidence(season, evidence, ctx.run.id);

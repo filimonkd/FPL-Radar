@@ -42,6 +42,13 @@ export function requireAdmin(req, _res, next) {
   return next();
 }
 
+/** Any signed-in principal: the admin or a viewer of some group (season-wide FPL data). */
+export function requireSignedIn(req, _res, next) {
+  const p = req.principal;
+  if (!p || p.role === 'anonymous') return next(unauthorized());
+  return next();
+}
+
 /**
  * Read access to one group: the admin, or a viewer of exactly that group. A
  * viewer asking for another group gets 404, so group ids are not confirmed.

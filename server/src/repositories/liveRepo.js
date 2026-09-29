@@ -17,4 +17,16 @@ export const liveRepo = {
   async get(season, gw, { withProvenance = false, session } = {}) {
     return liveToDomain(await LiveGameweek.findById(ids.liveGameweek(season, gw)).session(session ?? null).lean(), { withProvenance });
   },
+
+  /** GWs of a season whose stored live data is complete (every element settled). */
+  async listSettledGws(season, { session } = {}) {
+    const docs = await LiveGameweek.find({ season }, { gw: 1, elements: 1 }).session(session ?? null).lean();
+    return docs.filter((d) => d.elements.length > 0 && d.elements.every((e) => e.settled)).map((d) => d.gw).sort((a, b) => a - b);
+  },
+
+  /** Every stored GW of a season (points and minutes per element), ordered by GW. */
+  async listBySeason(season, { session } = {}) {
+    const docs = await LiveGameweek.find({ season }).sort({ gw: 1 }).session(session ?? null).lean();
+    return docs.map((d) => liveToDomain(d));
+  },
 };

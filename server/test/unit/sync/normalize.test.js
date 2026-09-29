@@ -167,3 +167,18 @@ test('ep_next decimal strings become integer tenths; anything else is null (neve
   const [q] = playersOf({ elements: [{ id: 2, web_name: 'B', team: 1, element_type: 3, now_cost: 50 }] }, '2026-27');
   assert.equal(q.epNextTenths, null, 'missing ep_next stays unknown');
 });
+
+test('player intel fields: FPL decimal strings to tenths, ints kept, blanks and junk to null', async () => {
+  const { playersOf } = await import('../../../src/sync/normalize.js');
+  const [p] = playersOf({ elements: [{
+    id: 7, web_name: 'X', team: 2, element_type: 3, now_cost: 65, status: 'd', news: 'Knock - 75% chance of playing', news_added: '2026-09-20T10:00:00Z',
+    chance_of_playing_next_round: 75, selected_by_percent: '12.3', form: '5.1', points_per_game: '4.8', total_points: 29, minutes: 410,
+    cost_change_event: -1, cost_change_start: 2, transfers_in_event: 1200, transfers_out_event: 3400,
+  }] }, '2026-27');
+  assert.deepEqual(
+    [p.status, p.news, p.newsAdded.toISOString(), p.chanceNext, p.selectedByTenths, p.formTenths, p.ppgTenths, p.totalPoints, p.minutes, p.costChangeEventTenths, p.costChangeStartTenths, p.transfersInEvent, p.transfersOutEvent],
+    ['d', 'Knock - 75% chance of playing', '2026-09-20T10:00:00.000Z', 75, 123, 51, 48, 29, 410, -1, 2, 1200, 3400],
+  );
+  const [q] = playersOf({ elements: [{ id: 8, web_name: 'Y', team: 2, element_type: 3, now_cost: 65, news: '', news_added: 'not a date', chance_of_playing_next_round: null }] }, '2026-27');
+  assert.deepEqual([q.news, q.newsAdded, q.chanceNext, q.selectedByTenths, q.totalPoints], [null, null, null, null, null], 'unknown stays unknown, never 0');
+});
