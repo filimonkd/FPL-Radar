@@ -442,6 +442,23 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
 - **Filters live in the URL**, so a search can be bookmarked or shared.
 - **API.** `GET /api/groups/:groupId/gw/:gw/finder?season=&position=&maxPrice=&maxOwnership=&maxGroupOwners=&fit=&sort=&limit=` (admin or group viewer, read-only). `maxPrice` is in £m and `maxOwnership` in %. `limit` defaults to 50 (max 200), and `total` counts every match.
 
+## Transfer simulator (Step 20)
+
+- **Transfers tab.** Needs "me" set in Settings and a synced squad. It always works from FPL's current GW: your latest synced squad and FPL's next-GW numbers, whatever GW the page shows. Transfers you've already made for next GW aren't visible without FPL login, so the squad is the last synced one.
+- **Sell** one of your 15, shown with an estimated selling price. Your latest transfer in sets the purchase price, or the season start price if you've owned him since the start (`now_cost − cost_change_start`). You keep half of any rise, rounded down, and any fall is passed on in full.
+- **Buy** a player of the same position, searchable by name or club and sorted by FPL expected points. A player who would be your 4th from one club is marked.
+- **Result:**
+  - ≈ bank after the transfer, sell and buy prices, and warnings for the 3-per-club limit or running out of money;
+  - both players' points and minutes over the last 3/5/10 GWs, next-GW expected points and next-3 fixtures;
+  - a projection table and a verdict.
+- **Estimate rule** (`server/src/analytics/transfer.js`, pure):
+  - GW+1 is FPL's `ep_next`.
+  - GW+2 to GW+5 are estimates: a per-game base times a difficulty factor for each fixture (1.2, 1.1, 1.0, 0.9, 0.8 for FDR 1–5). The base is `ep_next` divided by his team's GW+1 games, or FPL form when his team blanks in GW+1.
+  - Blank GWs count 0 and doubles count both games.
+- **Verdict:** a −4 hit pays off at the first GW where the cumulative gain reaches 4; a free transfer, at the first GW where it is above 0. Otherwise it "doesn't beat −4 over 5 GWs", or it's "not enough data" when an estimate is missing. Every estimated number is labelled.
+- **Choices live in the URL** (`?out=&in=&hit=`).
+- **API** (admin or group viewer, read-only): `GET /api/groups/:groupId/transfer-plan?season=` and `GET /api/groups/:groupId/transfer-sim?season=&out=&in=&hit=`. Errors: 422 `ME_NOT_SET`, `NO_SQUAD`, `NO_CURRENT_GW`, `NOT_IN_SQUAD`.
+
 ## Test
 
 ```bash

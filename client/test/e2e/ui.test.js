@@ -222,6 +222,32 @@ test('differential finder: filters in the URL, group vs world ownership', async 
   assert.ok(await noHorizontalScroll(page));
 });
 
+test('transfer simulator: sell, search and buy, club warning, hit verdict; choices in the URL', async () => {
+  const page = adminPage;
+  await page.goto(`${groupUrl.replace(/results$/, 'transfers')}?season=${SEASON}&gw=${GW}`);
+  await page.getByTestId('sim-sell').waitFor();
+  await page.getByTestId('sell-1').click();
+  await page.waitForURL(/out=1/);
+  await page.getByTestId('sim-buy').waitFor();
+  const buy = page.getByTestId('sim-buy').locator('button');
+  assert.deepEqual(await buy.evaluateAll((els) => els.map((e) => e.dataset.testid)), ['buy-25', 'buy-29', 'buy-17', 'buy-21'], 'unowned goalkeepers, best expected points first');
+  await page.getByTestId('sim-search').fill('p29');
+  await page.getByTestId('buy-17').waitFor({ state: 'detached' });
+  assert.equal(await buy.count(), 1, 'search is case-insensitive');
+  await page.getByTestId('buy-29').click();
+  await page.waitForURL(/in=29/);
+  await page.getByTestId('sim-verdict').waitFor();
+  assert.match(await page.getByTestId('sim-verdict').innerText(), /Doesn’t beat −4 over 5 GWs/);
+  assert.match(await page.getByTestId('sim-warnings').innerText(), /4 players from C1: FPL allows 3/);
+  assert.equal(await page.getByTestId('sim-sell').locator('button[data-testid^="sell-"]').count(), 1, 'the sell list folds to the chosen player');
+  assert.match(await page.getByTestId('sim-bank').innerText(), /^(≈|–)/);
+  await page.getByTestId('sim-cost-free').click();
+  await page.waitForURL(/hit=false/);
+  await page.getByTestId('sim-verdict').filter({ hasText: /Gains within 1 GW/ }).waitFor();
+  assert.equal(await page.getByTestId('sim-projection').locator('tbody tr').count(), 5);
+  assert.ok(await noHorizontalScroll(page));
+});
+
 test('override with a note appends to the history; the chain stays valid', async () => {
   const page = adminPage;
   await page.goto(`${groupUrl}?season=${SEASON}&gw=${GW}`);

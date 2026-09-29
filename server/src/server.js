@@ -13,6 +13,7 @@ import { createRivalsService } from './services/rivalsService.js';
 import { createPlayersService } from './services/playersService.js';
 import { createNewsService } from './services/newsService.js';
 import { createFinderService } from './services/finderService.js';
+import { createTransferService } from './services/transferService.js';
 import { createShutdown } from './shutdown.js';
 import mongoose from 'mongoose';
 import { fileURLToPath } from 'node:url';
@@ -53,6 +54,7 @@ const rivals = createRivalsService({ ownership, status });
 const players = createPlayersService({ sync });
 const news = createNewsService({ players });
 const finder = createFinderService({ players });
+const transfers = createTransferService({ players });
 
 const app = createApp({
   config,
@@ -60,7 +62,7 @@ const app = createApp({
   getDbStatus,
   getMigrationStatus,
   getRuntime: () => ({ shuttingDown: sync.shuttingDown, activeRuns: sync.activeRuns.length }),
-  services: { groups, results, ownership, status, rivals, players, news, finder },
+  services: { groups, results, ownership, status, rivals, players, news, finder, transfers },
   log: console.error,
   // The built client (npm run build → client/dist), served from the API's origin.
   clientDir: fileURLToPath(new URL('../../client/dist/', import.meta.url)),
