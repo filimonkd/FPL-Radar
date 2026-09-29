@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { Navigate, NavLink, useParams, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Brain, ChevronLeft, ChevronRight, Layers, Newspaper, PieChart, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
+import { Brain, ChevronLeft, ChevronRight, Layers, Newspaper, PieChart, Search, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
 import { endpoints } from '../lib/api.js';
 import { seasonForDate, isSeasonKey } from '../lib/format.js';
 import { useSession } from '../lib/session.jsx';
@@ -12,8 +13,9 @@ import Settings from './Settings.jsx';
 import Rivals from './Rivals.jsx';
 import Strategy from './Strategy.jsx';
 import News from './News.jsx';
+import Finder from './Finder.jsx';
 
-const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
+const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['finder', 'Finder', Search], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
 const STATE_LABEL = { UPCOMING: 'upcoming', LIVE: 'live', MATCHES_FINISHED: 'matches finished', FPL_PROCESSING: 'processing', DATA_CHECKED: 'final data' };
 
 /** Season and gameweek live in the URL (?season=&gw=) so every view is linkable. */
@@ -35,6 +37,14 @@ export default function GroupLayout() {
   const season = isSeasonKey(params.get('season')) ? params.get('season') : seasonForDate();
   const events = useQuery({ queryKey: ['events', season], queryFn: () => endpoints.events(season) });
   const { gw, set } = useGwParams(events.data);
+
+  const tabsRef = useRef(null);
+  // With many tabs the bar scrolls sideways; keep the open one in view.
+  useEffect(() => {
+    const bar = tabsRef.current;
+    const active = bar?.querySelector('[aria-current="page"]');
+    if (bar && active) bar.scrollLeft = active.offsetLeft - (bar.clientWidth - active.offsetWidth) / 2; // sideways only, never the page
+  }, [tab, group.isLoading]);
 
   const isAdmin = session.role === 'admin';
   const tabs = TABS.filter(([k]) => k !== 'settings' || isAdmin);
@@ -81,7 +91,7 @@ export default function GroupLayout() {
       </div>
 
       <nav className="sticky top-14 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur">
-        <div className="flex gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-sm ring-1 ring-line [scrollbar-width:none]">
+        <div ref={tabsRef} className="flex gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-sm ring-1 ring-line [scrollbar-width:none]">
           {tabs.map(([k, label, Icon]) => (
             <NavLink key={k} to={`/groups/${groupId}/${k}${query}`} className={({ isActive }) => `flex min-h-10 shrink-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-sm font-semibold transition ${isActive ? 'bg-brand text-brand-ink shadow-sm' : 'text-muted hover:text-ink'}`}>
               <Icon size={16} aria-hidden="true" className="hidden sm:block" />{label}
@@ -96,6 +106,7 @@ export default function GroupLayout() {
           : tab === 'results' ? <Results group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'rivals' ? <Rivals group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'news' ? <News group={g} season={season} gw={gw} isAdmin={isAdmin} />
+            : tab === 'finder' ? <Finder group={g} season={season} gw={gw} />
             : tab === 'strategy' ? <Strategy group={g} season={season} gw={gw} />
             : tab === 'ownership' ? <Ownership group={g} season={season} gw={gw} />
               : <Chips group={g} season={season} gw={gw} />}

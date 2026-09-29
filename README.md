@@ -433,6 +433,15 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
 - **Freshness.** When the admin opens News, the app asks the server to re-read FPL's player data (`POST /api/seasons/:season/players/refresh`). The server reads bootstrap and fixtures at most once every 5 minutes. If FPL is down, the stored news is shown with a notice. Viewers never trigger FPL requests; they see the data as of the time shown.
 - **API.** `GET /api/groups/:groupId/gw/:gw/news?season=` (admin or group viewer, read-only).
 
+## Differential & value finder (Step 19)
+
+- **Finder tab.** Every FPL player, filtered and sorted against your group (`server/src/analytics/finder.js`, pure).
+- **Filters:** position; max price; max world ownership (FPL's selected-by %); max owners in the group (latest synced squads); fit only, which hides players whose FPL status isn't "available". A player missing the data a filter needs never passes that filter.
+- **Sorts:** season points per £1m, FPL form, next-GW expected points (`ep_next`), or easiest next 3 GWs (average FDR, ascending). Missing values sort last; ties go to better value, then player id.
+- **Rows** show "12% world · 0/10 FFM300", the next 3 fixtures coloured by difficulty, blanks, and an "Easy run" badge when the average FDR is under 3.0.
+- **Filters live in the URL**, so a search can be bookmarked or shared.
+- **API.** `GET /api/groups/:groupId/gw/:gw/finder?season=&position=&maxPrice=&maxOwnership=&maxGroupOwners=&fit=&sort=&limit=` (admin or group viewer, read-only). `maxPrice` is in £m and `maxOwnership` in %. `limit` defaults to 50 (max 200), and `total` counts every match.
+
 ## Test
 
 ```bash

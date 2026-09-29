@@ -77,6 +77,7 @@ export const endpoints = {
   rivals: (id, gw, season) => api(`/groups/${id}/gw/${gw}/rivals?${q({ season })}`),
   news: (id, gw, season) => api(`/groups/${id}/gw/${gw}/news?${q({ season })}`),
   refreshPlayers: (season) => api(`/seasons/${season}/players/refresh`, { method: 'POST' }),
+  finder: (id, gw, season, params) => api(`/groups/${id}/gw/${gw}/finder?${q({ season, ...params })}`),
   chips: (id, season, event) => api(`/groups/${id}/chips?${q({ season, event })}`),
   status: (season) => api(`/status?${q({ season })}`),
   run: (runId) => api(`/status/runs/${runId}`),

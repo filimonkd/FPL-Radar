@@ -28,6 +28,22 @@ export function playerFlags(p) {
   return flags;
 }
 
+/**
+ * Who owns each player: elementId → entry ids (ascending).
+ * @param {{ entryId: number, elementIds: number[] }[]} squads  each member's latest known 15
+ * @returns {Map<number, number[]>}
+ */
+export function ownersByElement(squads) {
+  const owners = new Map();
+  for (const s of [...squads].sort((a, b) => a.entryId - b.entryId)) {
+    for (const id of new Set(s.elementIds)) {
+      if (!owners.has(id)) owners.set(id, []);
+      owners.get(id).push(s.entryId);
+    }
+  }
+  return owners;
+}
+
 const severity = (flags) => (flags.length ? FLAG_ORDER.indexOf(flags[0].code) : FLAG_ORDER.length);
 const time = (d) => (d == null ? null : new Date(d).getTime());
 
@@ -39,13 +55,7 @@ const time = (d) => (d == null ? null : new Date(d).getTime());
  *   timestamp last), then most severe; mine: my squad's alert-worthy items.
  */
 export function buildNewsFeed({ players, squads, myEntryId = null }) {
-  const owners = new Map();
-  for (const s of [...squads].sort((a, b) => a.entryId - b.entryId)) {
-    for (const id of new Set(s.elementIds)) {
-      if (!owners.has(id)) owners.set(id, []);
-      owners.get(id).push(s.entryId);
-    }
-  }
+  const owners = ownersByElement(squads);
   const items = players
     .filter((p) => owners.has(p.elementId))
     .map((p) => {

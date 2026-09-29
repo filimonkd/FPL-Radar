@@ -206,6 +206,22 @@ test('injury & news: the squad alert strip on Results and the News tab', async (
   assert.ok(await noHorizontalScroll(page));
 });
 
+test('differential finder: filters in the URL, group vs world ownership', async () => {
+  const page = adminPage;
+  await page.goto(`${groupUrl.replace(/results$/, 'finder')}?season=${SEASON}&gw=${GW}&maxGroupOwners=0`);
+  await page.getByTestId('finder-list').waitFor();
+  assert.match(await page.getByTestId('finder-count').innerText(), /^15 players$/, 'players 16–30: nobody in the group owns them');
+  assert.match(await page.getByTestId('finder-list').locator('li').first().getByTestId('finder-ownership').innerText(), /world · 0\/3 /);
+  await page.getByTestId('finder-fit').click();
+  await page.waitForURL(/fit=true/);
+  await page.getByTestId('finder-count').filter({ hasText: /^14 players$/ }).waitFor();
+  await page.getByTestId('finder-pos-DEF').click();
+  await page.waitForURL(/position=DEF/);
+  await page.getByTestId('finder-count').filter({ hasText: /^4 players$/ }).waitFor();
+  assert.ok(new URL(page.url()).searchParams.get('maxGroupOwners') === '0', 'earlier filters kept');
+  assert.ok(await noHorizontalScroll(page));
+});
+
 test('override with a note appends to the history; the chain stays valid', async () => {
   const page = adminPage;
   await page.goto(`${groupUrl}?season=${SEASON}&gw=${GW}`);
