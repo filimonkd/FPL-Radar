@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Navigate, NavLink, useParams, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeftRight, Brain, ChevronLeft, ChevronRight, Layers, Newspaper, PieChart, Search, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
+import { ArrowLeftRight, Brain, CalendarRange, ChevronLeft, ChevronRight, Layers, Newspaper, PieChart, Search, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
 import { endpoints } from '../lib/api.js';
 import { seasonForDate, isSeasonKey } from '../lib/format.js';
 import { useSession } from '../lib/session.jsx';
@@ -15,8 +15,9 @@ import Strategy from './Strategy.jsx';
 import News from './News.jsx';
 import Finder from './Finder.jsx';
 import Transfers from './Transfers.jsx';
+import Planner from './Planner.jsx';
 
-const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['finder', 'Finder', Search], ['transfers', 'Transfers', ArrowLeftRight], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
+const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['finder', 'Finder', Search], ['transfers', 'Transfers', ArrowLeftRight], ['planner', 'Planner', CalendarRange], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
 const STATE_LABEL = { UPCOMING: 'upcoming', LIVE: 'live', MATCHES_FINISHED: 'matches finished', FPL_PROCESSING: 'processing', DATA_CHECKED: 'final data' };
 
 /** Season and gameweek live in the URL (?season=&gw=) so every view is linkable. */
@@ -107,6 +108,7 @@ export default function GroupLayout() {
           : tab === 'results' ? <Results group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'rivals' ? <Rivals group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'news' ? <News group={g} season={season} gw={gw} isAdmin={isAdmin} />
+            : tab === 'planner' ? <Planner group={g} season={season} />
             : tab === 'transfers' ? <Transfers group={g} season={season} />
             : tab === 'finder' ? <Finder group={g} season={season} gw={gw} />
             : tab === 'strategy' ? <Strategy group={g} season={season} gw={gw} />

@@ -248,6 +248,33 @@ test('transfer simulator: sell, search and buy, club warning, hit verdict; choic
   assert.ok(await noHorizontalScroll(page));
 });
 
+test('wildcard planner: start from my squad, rules enforced live, drafts kept in the browser', async () => {
+  const page = adminPage;
+  await page.goto(`${groupUrl.replace(/results$/, 'planner')}?season=${SEASON}&gw=${GW}`);
+  await page.getByTestId('planner-new-squad').click();
+  await page.getByTestId('planner-status').waitFor();
+  // World squads are players 1–15: position and club both follow (id - 1) % 4, so
+  // there are four GKPs, all from C1, and four each from C2 and C3.
+  const status = () => page.getByTestId('planner-status').innerText();
+  assert.match(await status(), /Too many GKP: 4\/2/);
+  assert.match(await status(), /4 players from C1 \(max 3\)/);
+  await page.getByTestId('drop-5').click();
+  await page.getByTestId('drop-9').click();
+  await page.getByTestId('drop-14').click();
+  assert.doesNotMatch(await status(), /Too many GKP|from C1|from C2/);
+  assert.match(await status(), /12\/15 players · still need 2 DEF, 1 MID/);
+  await page.getByTestId('add-DEF').first().click();
+  await page.getByTestId('planner-picker').waitFor();
+  assert.ok(await page.getByTestId('pick-18').isDisabled(), 'every other DEF is from C2, which already has 3');
+  assert.match(await page.getByTestId('pick-18').innerText(), /already 3 from C2/);
+  await page.keyboard.press('Escape');
+  assert.match(await page.getByTestId('planner-xpts').innerText(), /Expected pts\s+\d/);
+  await page.reload();
+  await page.getByTestId('planner-status').waitFor();
+  assert.match(await status(), /12\/15 players/, 'the draft survived a reload');
+  assert.ok(await noHorizontalScroll(page));
+});
+
 test('override with a note appends to the history; the chain stays valid', async () => {
   const page = adminPage;
   await page.goto(`${groupUrl}?season=${SEASON}&gw=${GW}`);

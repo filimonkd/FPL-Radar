@@ -459,6 +459,21 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
 - **Choices live in the URL** (`?out=&in=&hit=`).
 - **API** (admin or group viewer, read-only): `GET /api/groups/:groupId/transfer-plan?season=` and `GET /api/groups/:groupId/transfer-sim?season=&out=&in=&hit=`. Errors: 422 `ME_NOT_SET`, `NO_SQUAD`, `NO_CURRENT_GW`, `NOT_IN_SQUAD`.
 
+## Wildcard / Free Hit planner (Step 21)
+
+- **Planner tab.** Build a 15-player squad for next GW, starting from your latest synced squad or from a blank slate. The budget is your squad's estimated selling value plus the bank, or £100.0m without "me"; you can edit it.
+- **FPL's rules checked live** (`client/src/lib/planner.js`, pure, unit-tested):
+  - The squad must be 2 GKP / 5 DEF / 5 MID / 3 FWD, with at most 3 per club, within the budget.
+  - The starting XI must be 11 players: 1 GKP, at least 3 DEF, 2 MID and 1 FWD.
+  - Adding a player to a full position or a 4th from one club is blocked, with the reason shown. Going over budget is allowed but flagged, as in FPL's own picker.
+- **Live totals:**
+  - money left;
+  - XI expected points (FPL `ep_next`, captain = highest xP, counted twice);
+  - average difficulty of the XI's next-3 fixtures;
+  - starters with a double or a blank next GW.
+- **Best XI** picks the formation minimums by expected points, then the best of the rest.
+- **Drafts are saved in this browser only** (`localStorage`, per group and season), with several drafts, Wildcard or Free Hit mode, and delete. No server changes: nothing is stored or deleted server-side.
+
 ## Test
 
 ```bash
