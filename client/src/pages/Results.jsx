@@ -136,7 +136,22 @@ export default function Results({ group, season, gw, isAdmin }) {
             </div>
           )}
           <div className="mt-3 space-y-2">
-            {sync.data && <Notice tone={sync.data.run.status === 'SUCCESS' ? 'good' : 'warn'} testId="sync-result">Sync {sync.data.run.status}{sync.data.run.failures.length ? `: ${sync.data.run.failures.map((f) => `${f.entryId ?? ''} ${f.code}`).join(', ')}` : ''}</Notice>}
+            {sync.data && (
+              <Notice tone={sync.data.run.status === 'SUCCESS' ? 'good' : 'warn'} testId="sync-result">
+                <p>Sync {sync.data.run.status}{sync.data.run.failures.length ? ` · ${sync.data.run.failures.length} failed` : ''}</p>
+                {sync.data.run.failures.length > 0 && (
+                  <ul className="mt-1 space-y-1" data-testid="sync-failures">
+                    {sync.data.run.failures.map((f, i) => (
+                      <li key={i} className="break-words">
+                        <span className="font-semibold">{f.entryId != null ? managerName(r.standings, f.entryId) : 'Run'}</span> · {f.code}
+                        {f.message && <span className="block font-mono text-xs opacity-80">{f.message}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link className="mt-1 inline-block text-xs font-semibold underline" to={`/status/runs/${sync.data.run.runId}`}>Run details</Link>
+              </Notice>
+            )}
             <ErrorBox error={sync.error} title="Sync failed" />
             <ErrorBox error={finalize.error} title="Finalize refused" />
           </div>
