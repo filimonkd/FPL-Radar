@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireAdmin, requireGroupRead } from '../middleware/auth.js';
-import { notFound, unauthorized } from '../errors.js';
+import { requireAdmin, requireGroupRead, requireSignedIn } from '../middleware/auth.js';
+import { notFound } from '../errors.js';
 import { objectIdParam, seasonKey } from '../validators/groups.js';
 
 // Chips page and Status page API (v0.2 §8; v0.3 §15 step 11). Read-only.
@@ -12,11 +12,6 @@ import { objectIdParam, seasonKey } from '../validators/groups.js';
 
 const chipsQuery = z.object({ season: seasonKey, event: z.coerce.number().int().min(1).max(38).optional() });
 const statusQuery = z.object({ season: seasonKey, limit: z.coerce.number().int().min(1).max(100).optional() });
-
-function requireSignedIn(req, _res, next) {
-  if (!req.principal || req.principal.role === 'anonymous') return next(unauthorized());
-  return next();
-}
 
 export function statusRouter({ status }) {
   const router = Router();

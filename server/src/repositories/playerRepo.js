@@ -19,4 +19,10 @@ export const playerRepo = {
     const docs = await Player.find({ season }).sort({ elementId: 1 }).session(session ?? null).lean();
     return docs.map((d) => playerToDomain(d, { withProvenance }));
   },
+
+  /** When a sync last confirmed the season's player data (the latest bootstrap read), or null. */
+  async getLastConfirmedAt(season, { session } = {}) {
+    const doc = await Player.findOne({ season }, { 'provenance.lastConfirmedAt': 1 }).sort({ 'provenance.lastConfirmedAt': -1 }).session(session ?? null).lean();
+    return doc?.provenance?.lastConfirmedAt ?? null;
+  },
 };

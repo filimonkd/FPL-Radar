@@ -30,7 +30,13 @@ before(async () => {
   assert.ok(existsSync(DIST), 'build the client first (npm run build)');
   t = await startTestDb();
   dbName = `fpl_rival_ui_${randomUUID().slice(0, 8)}`;
-  fpl = await serveWorld(createWorld());
+  const world = createWorld();
+  world.state.elementPatch = {
+    2: { status: 'd', news: 'Knock - 75% chance of playing', news_added: '2026-09-21T10:00:00Z', chance_of_playing_next_round: 75 },
+    5: { status: 'i', news: 'Hamstring injury - Expected back 04 Oct', news_added: '2026-09-20T10:00:00Z', chance_of_playing_next_round: 0 },
+    25: { status: 'i', news: 'Nobody owns him', news_added: '2026-09-22T10:00:00Z' },
+  };
+  fpl = await serveWorld(world);
   app = await startProdServer({
     MONGODB_URI: t.uri,
     MONGODB_DB: dbName,
@@ -178,6 +184,25 @@ test('spy vs me, rival radar and strategy lab render from the rivals API', async
   await page.getByTestId('xpts').waitFor();
   assert.equal(await page.getByTestId('xpts').locator('li').count(), 3);
   assert.equal(await page.getByTestId('fdr').locator('li').count(), 3);
+  assert.ok(await noHorizontalScroll(page));
+});
+
+test('injury & news: the squad alert strip on Results and the News tab', async () => {
+  const page = adminPage;
+  await page.goto(`${groupUrl}?season=${SEASON}&gw=${GW}`);
+  await page.getByTestId('squad-alerts').waitFor();
+  const strip = await page.getByTestId('squad-alerts').innerText();
+  assert.match(strip, /Your squad: 2 alerts/);
+  assert.match(strip, /P5[\s\S]*Injured[\s\S]*P2[\s\S]*Doubt · 75%/, 'most severe first');
+  await page.getByRole('link', { name: 'All news' }).click();
+  await page.getByTestId('news-list').waitFor();
+  const list = page.getByTestId('news-list');
+  assert.equal(await list.locator('li').count(), 2, 'only players someone in the group owns');
+  assert.match(await list.locator('li').first().innerText(), /P2[\s\S]*Knock/, 'newest news first');
+  assert.match(await page.getByTestId('news-5').innerText(), /🔴 Injured[\s\S]*Hamstring/);
+  assert.match(await page.getByTestId('news-asof').innerText(), /FPL data as of/);
+  await page.getByTestId('news-filter-rivals').click();
+  assert.equal(await list.locator('li').count(), 2, 'rivals own the same players in this world');
   assert.ok(await noHorizontalScroll(page));
 });
 

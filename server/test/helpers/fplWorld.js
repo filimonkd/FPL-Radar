@@ -58,6 +58,7 @@ export function createWorld({ seasonStartYear = 2026, entries = ENTRIES } = {}) 
     chips: syntheticChips(),
     standings: [...entries],
     entries: Object.fromEntries(entries.map((id, i) => [id, defaultEntry(id, i)])),
+    elementPatch: {}, // element id → extra bootstrap fields (status, news, …)
     live: Array.from({ length: 30 }, (_, i) => ({ ...syntheticLiveElement(i + 1, i < 15 ? 5 : 1), explain: [{ fixture: GW * 2 - 1 + (i % 2), stats: [] }] })),
   };
   state.fixtures.push(syntheticFixture(99, null, { kickoff_time: null, started: false, finished: false, finished_provisional: false, team_h_score: null, team_a_score: null }));
@@ -70,7 +71,7 @@ export function createWorld({ seasonStartYear = 2026, entries = ENTRIES } = {}) 
       return {
         events: state.events,
         teams: [1, 2, 3, 4].map((id) => ({ id, name: `Club ${id}`, short_name: `C${id}` })),
-        elements: Array.from({ length: 30 }, (_, i) => ({ id: i + 1, web_name: `P${i + 1}`, team: (i % 4) + 1, element_type: (i % 4) + 1, now_cost: 45 + i, ep_next: ((i % 5) + 1).toFixed(1) })),
+        elements: Array.from({ length: 30 }, (_, i) => ({ id: i + 1, web_name: `P${i + 1}`, team: (i % 4) + 1, element_type: (i % 4) + 1, now_cost: 45 + i, ep_next: ((i % 5) + 1).toFixed(1), ...state.elementPatch[i + 1] })),
         element_types: [1, 2, 3, 4].map((id) => ({ id, singular_name_short: ['GKP', 'DEF', 'MID', 'FWD'][id - 1] })),
         chips: state.chips,
       };

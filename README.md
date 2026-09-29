@@ -420,6 +420,19 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
   - FPL selling price (you keep half of any rise, rounded down).
 - **API.** `GET /api/seasons/:season/players?event=` (admin or any group viewer, read-only) returns every player with those fields. `event` defaults to the current GW. Form windows only count finished GWs, so a GW in progress never looks like a bad week.
 
+## Injury & news (Step 18)
+
+- **News tab.** FPL news and flags for every player owned by anyone in the group, newest FPL news first. Owners are each member's latest synced squad (all 15) up to the chosen GW, shown as avatars. Filter by all, mine or rivals.
+- **Flags** (`server/src/analytics/news.js`, pure):
+  - 🔴 injured, suspended or unavailable (FPL status `i`, `s`, `u`, `n`);
+  - 🚨 doubt, with FPL's chance of playing;
+  - 🔄 rotation risk (Step 17 rule);
+  - 📉 price already dropped this GW;
+  - 📈 price pressure: 50,000 or more net transfers in this GW. A signal, not a prediction.
+- **Your squad strip.** Results shows your own players who are out, doubtful, at rotation risk or dropped in price. It needs "me" set in Settings, and stays hidden when there's nothing to report.
+- **Freshness.** When the admin opens News, the app asks the server to re-read FPL's player data (`POST /api/seasons/:season/players/refresh`). The server reads bootstrap and fixtures at most once every 5 minutes. If FPL is down, the stored news is shown with a notice. Viewers never trigger FPL requests; they see the data as of the time shown.
+- **API.** `GET /api/groups/:groupId/gw/:gw/news?season=` (admin or group viewer, read-only).
+
 ## Test
 
 ```bash

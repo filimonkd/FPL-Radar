@@ -1,6 +1,6 @@
 import { Navigate, NavLink, useParams, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Brain, ChevronLeft, ChevronRight, Layers, PieChart, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
+import { Brain, ChevronLeft, ChevronRight, Layers, Newspaper, PieChart, Settings as SettingsIcon, Swords, Trophy } from 'lucide-react';
 import { endpoints } from '../lib/api.js';
 import { seasonForDate, isSeasonKey } from '../lib/format.js';
 import { useSession } from '../lib/session.jsx';
@@ -11,8 +11,9 @@ import Chips from './Chips.jsx';
 import Settings from './Settings.jsx';
 import Rivals from './Rivals.jsx';
 import Strategy from './Strategy.jsx';
+import News from './News.jsx';
 
-const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['strategy', 'Strategy', Brain], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
+const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
 const STATE_LABEL = { UPCOMING: 'upcoming', LIVE: 'live', MATCHES_FINISHED: 'matches finished', FPL_PROCESSING: 'processing', DATA_CHECKED: 'final data' };
 
 /** Season and gameweek live in the URL (?season=&gw=) so every view is linkable. */
@@ -94,6 +95,7 @@ export default function GroupLayout() {
         : gw == null ? <p className="rounded-2xl bg-surface p-4 text-sm text-muted ring-1 ring-line">No gameweek known for {season} yet. Choose one above, then sync it from the Results tab.</p>
           : tab === 'results' ? <Results group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'rivals' ? <Rivals group={g} season={season} gw={gw} isAdmin={isAdmin} />
+            : tab === 'news' ? <News group={g} season={season} gw={gw} isAdmin={isAdmin} />
             : tab === 'strategy' ? <Strategy group={g} season={season} gw={gw} />
             : tab === 'ownership' ? <Ownership group={g} season={season} gw={gw} />
               : <Chips group={g} season={season} gw={gw} />}

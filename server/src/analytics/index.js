@@ -15,3 +15,4 @@ export { summarizeTransfers } from './transfers.js';
 export { chipAvailability, validateChipRules } from './chips.js';
 export { computeRivals, THREAT_RULE, FDR_WINDOW } from './rivals.js';
 export { pointsOver, rotationRisk, fixtureRun, sellingPrice, purchasePrice, startPrice, ROTATION_RULE, FIXTURE_WINDOW } from './playerStats.js';
+export { playerFlags, buildNewsFeed, OUT_STATUS, PRICE_PRESSURE_NET, FLAG_ORDER, ALERT_FLAGS } from './news.js';

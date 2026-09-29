@@ -11,13 +11,14 @@ import { ownershipRouter } from './routes/ownership.js';
 import { statusRouter } from './routes/status.js';
 import { rivalsRouter } from './routes/rivals.js';
 import { playersRouter } from './routes/players.js';
+import { newsRouter } from './routes/news.js';
 import { internalRouter } from './routes/internal.js';
 import { authenticate } from './middleware/auth.js';
 import { errorHandler } from './middleware/errors.js';
 import { groupRepo } from './repositories/index.js';
 
 /**
- * @param {{ config, version, getDbStatus, getMigrationStatus?, getRuntime?, services?: { groups, results?, ownership?, status?, rivals?, players? },
+ * @param {{ config, version, getDbStatus, getMigrationStatus?, getRuntime?, services?: { groups, results?, ownership?, status?, rivals?, players?, news? },
  *           loginLimit?, log?, clientDir? }} deps
  *   Without `services` only the health route is mounted (used by the health unit test).
  *   `clientDir`: the built client (client/dist). Production serves it from this
@@ -45,6 +46,7 @@ export function createApp({ config, version, getDbStatus, getMigrationStatus, ge
     if (services.status) app.use('/api', statusRouter({ status: services.status }));
     if (services.rivals) app.use('/api', rivalsRouter({ rivals: services.rivals }));
     if (services.players) app.use('/api', playersRouter({ players: services.players }));
+    if (services.news) app.use('/api', newsRouter({ news: services.news, players: services.players }));
   }
 
   app.use('/api', (_req, res) => {

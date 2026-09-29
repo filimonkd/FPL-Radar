@@ -7,6 +7,7 @@ import { announcement, dateTime, explain, managerName, namesList, points, rankLa
 import { Avatar, Badge, Button, Card, Drawer, ErrorBox, Field, Notice, Skeleton, inputClass } from '../components/ui.jsx';
 import { Podium } from '../components/Podium.jsx';
 import { WhatsAppShare } from '../components/WhatsAppShare.jsx';
+import { SquadAlerts } from '../components/SquadAlerts.jsx';
 
 // Results page (v0.2 §3–§4, §6; v0.3 §7): the decision up top, admin actions,
 // standings as tappable cards ("=" ranks, tie-break explanations,
@@ -28,6 +29,7 @@ export default function Results({ group, season, gw, isAdmin }) {
     qc.invalidateQueries({ queryKey: ['ownership', group.id] }),
     qc.invalidateQueries({ queryKey: ['chips', group.id] }),
     qc.invalidateQueries({ queryKey: ['rivals', group.id] }),
+    qc.invalidateQueries({ queryKey: ['news', group.id] }),
   ]);
   const sync = useMutation({ mutationFn: () => endpoints.sync(group.id, season, gw), onSuccess: refresh });
   const finalize = useMutation({ mutationFn: () => endpoints.finalize(group.id, gw, season), onSuccess: refresh });
@@ -47,6 +49,7 @@ export default function Results({ group, season, gw, isAdmin }) {
 
   return (
     <div className="space-y-4">
+      <SquadAlerts group={group} season={season} gw={gw} />
       {/* The decision */}
       <section className={`overflow-hidden rounded-2xl shadow-sm ring-1 ${decided ? 'bg-gradient-to-br from-[#4c1d95] to-[#7c3aed] text-white ring-transparent' : 'bg-surface ring-line'}`}>
         <div className="p-4 sm:p-5">
