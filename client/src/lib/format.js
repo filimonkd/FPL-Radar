@@ -138,3 +138,61 @@ export function parseEntryIds(text) {
 export function tieBreakChain(selected) {
   return [...selected.filter((r) => r !== 'SHARED'), 'SHARED'];
 }
+
+/** Integer tenths of £m → "£100.2m"; unknown → "–". */
+export const money = (tenths) => (tenths == null ? '–' : `£${(tenths / 10).toFixed(1)}m`);
+
+/** Signed difference: "+5", "−3", "0"; unknown → "–". */
+export const signed = (n) => (n == null ? '–' : n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+
+const MEDALS = ['🥇', '🥈', '🥉'];
+
+/**
+ * WhatsApp-ready summary for one group GW (Step 16). Only facts from the API:
+ * the decided (or provisional) GW result, the overall podium, the GW top
+ * scorer, hits, the most-captained player, the bandwagon buy and the form
+ * leader. Sections without data are left out; nothing is invented.
+ */
+export function whatsappSummary({ groupName, season, result, rivals }) {
+  if (!rivals) return null;
+  const lines = [];
+  const who = (x) => `${x.teamName}${x.playerName ? ` (${x.playerName})` : ''}`;
+  const nameOf = (id) => {
+    const r = rivals.leaderboard.find((x) => x.entryId === id);
+    return r ? who(r) : `#${id}`;
+  };
+  const playerName = (id) => rivals.players?.find((p) => p.id === id)?.webName ?? `#${id}`;
+  lines.push(`🏆 *${groupName} — GW${rivals.event}* (${season})`);
+
+  const decided = result && (result.status === 'FINAL' || result.status === 'OVERRIDDEN');
+  if (result?.winners?.length) {
+    const all = result.winners.map(nameOf);
+    const names = all.length > 4 ? [...all.slice(0, 3), `${all.length - 3} more`] : all;
+    const score = result.winningScore != null && result.status !== 'OVERRIDDEN' ? ` — ${result.winningScore} pts` : '';
+    if (decided) lines.push(names.length > 1 ? `🤝 GW winners (shared): ${names.join(' & ')}${score}` : `👑 GW winner: ${names[0]}${score}${result.status === 'OVERRIDDEN' ? ' (declared by the admin)' : ''}`);
+    else lines.push(`⏳ Leading (not final yet): ${names.join(' & ')}${score}`);
+  } else if (rivals.gwTop?.length) {
+    lines.push(`⏳ Top this GW (not final yet): ${rivals.gwTop.map(who).join(' & ')} — ${rivals.gwTop[0].score} pts`);
+  }
+
+  if (rivals.podium?.length) {
+    lines.push('', '📊 *Overall standings*');
+    const shown = rivals.podium.slice(0, 3);
+    for (const p of shown) lines.push(`${MEDALS[p.rank - 1] ?? `${p.rank}.`} ${who(p)} — ${p.total} pts`);
+    if (rivals.podium.length > shown.length) lines.push(`…and ${rivals.podium.length - shown.length} more tied`);
+  }
+
+  const facts = [];
+  const hits = rivals.leaderboard.filter((x) => x.gwHit > 0).sort((a, b) => b.gwHit - a.gwHit || a.entryId - b.entryId);
+  if (hits.length) facts.push(`💸 Biggest hit: ${who(hits[0])} (−${hits[0].gwHit})`);
+  const caps = new Map();
+  for (const c of rivals.captains ?? []) if (c.captain != null && c.squadEvent === rivals.event) caps.set(c.captain, (caps.get(c.captain) ?? 0) + 1);
+  const capped = [...caps].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
+  if (capped) facts.push(`🎯 Most captained: ${playerName(capped[0])} (${capped[1]}/${rivals.leaderboard.length})`);
+  const wagon = rivals.strategy?.bandwagon?.[0];
+  if (wagon && wagon.count > 1) facts.push(`🚀 Bandwagon: ${wagon.webName ?? `#${wagon.elementId}`} bought by ${wagon.count}`);
+  const hot = rivals.leaderboard.filter((x) => x.form != null).sort((a, b) => b.form - a.form || a.entryId - b.entryId)[0];
+  if (hot) facts.push(`🔥 In form: ${who(hot)} (${hot.form} avg, last 3)`);
+  if (facts.length) lines.push('', ...facts);
+  return lines.join('\n');
+}

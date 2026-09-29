@@ -1,5 +1,11 @@
 import { Player } from '../models/Player.js';
 import { Season } from '../models/Season.js';
+import { Event } from '../models/Event.js';
+import { Manager } from '../models/Manager.js';
+import { ManagerGameweek } from '../models/ManagerGameweek.js';
+import { managerToDomain } from './mappers/manager.js';
+import { managerGameweekToDomain } from './mappers/managerGameweek.js';
+import { eventToDomain } from './mappers/event.js';
 import { ids } from '../db/ids.js';
 import { seasonToDomain, chipRulesToEngine } from './mappers/season.js';
 import { playerToDomain } from './mappers/player.js';
@@ -97,6 +103,36 @@ export const ownershipRepo = {
       players: await playersFor(season, moved, session),
       eventState: eventDoc?.state ?? null,
       sources: await sourcesOf([eventDoc, ...rows, ...managerSeasons], session),
+    };
+  },
+
+  /**
+   * Rival analytics inputs (Step 16): every member's season rows up to the GW,
+   * their latest known squads, manager names, the players those squads use
+   * (with FPL ep_next) and the fixtures of the next three GWs. Read-only.
+   * @returns {Promise<{ group, managers, rows, squads, players, upcoming, eventState, sources }>}
+   */
+  async loadRivalInputs(groupId, season, event, { session } = {}) {
+    const s = session ?? null;
+    const { group, eventDoc } = await loadGroupGw(groupId, season, event, session);
+    const entryIds = group.members.map((m) => m.entryId);
+    const rowDocs = await ManagerGameweek.find({ season, entryId: { $in: entryIds }, event: { $lte: event } }).sort({ entryId: 1, event: 1 }).session(s).lean();
+    const rows = rowDocs.map((d) => managerGameweekToDomain(d, { withProvenance: true }));
+    const managers = (await Manager.find({ entryId: { $in: entryIds } }).sort({ entryId: 1 }).session(s).lean()).map((d) => managerToDomain(d));
+    const squads = rows.filter((r) => r.hasPicks).map((r) => ({ entryId: r.entryId, event: r.event, picks: r.picks }));
+    const players = await playersFor(season, squads.flatMap((q) => q.picks.map((p) => p.elementId)), session);
+    const nextGws = [event + 1, event + 2, event + 3].filter((g) => g <= 38);
+    const upcomingDocs = await Event.find({ season, gw: { $in: nextGws } }).sort({ gw: 1 }).session(s).lean();
+    const upcoming = upcomingDocs.map((d) => eventToDomain(d)).flatMap((e) => e.fixtures.map((f) => ({ event: e.gw, teamH: f.teamH, teamA: f.teamA, teamHFdr: f.teamHFdr ?? null, teamAFdr: f.teamAFdr ?? null })));
+    return {
+      group,
+      managers,
+      rows,
+      squads,
+      players,
+      upcoming,
+      eventState: eventDoc?.state ?? null,
+      sources: await sourcesOf([eventDoc, ...rows], session),
     };
   },
 };

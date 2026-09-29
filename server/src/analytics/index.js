@@ -13,3 +13,4 @@ export { deriveEffectiveSquad } from './effectiveSquad.js';
 export { computeOwnership } from './ownership.js';
 export { summarizeTransfers } from './transfers.js';
 export { chipAvailability, validateChipRules } from './chips.js';
+export { computeRivals, THREAT_RULE, FDR_WINDOW } from './rivals.js';

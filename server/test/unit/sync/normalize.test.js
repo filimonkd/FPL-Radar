@@ -157,3 +157,13 @@ test('transfers and profiles map to domain types', () => {
     [{ elementIn: 1, elementInCostTenths: 50, elementOut: 2, elementOutCostTenths: 55, event: 3, time: new Date('2026-08-30T10:00:00Z') }]);
   assert.deepEqual(profileFromEntry({ id: 7, name: 'XI', player_first_name: 'A', player_last_name: 'B' }), { entryId: 7, playerName: 'A B', teamName: 'XI' });
 });
+
+test('ep_next decimal strings become integer tenths; anything else is null (never 0)', async () => {
+  const { tenthsOf, playersOf } = await import('../../../src/sync/normalize.js');
+  assert.deepEqual(['6.0', '0.2', '0.0', '12.35', 4.5].map(tenthsOf), [60, 2, 0, 124, 45]);
+  assert.deepEqual([null, undefined, '', ' ', 'n/a', {}].map(tenthsOf), [null, null, null, null, null, null]);
+  const [p] = playersOf({ elements: [{ id: 1, web_name: 'A', team: 1, element_type: 3, now_cost: 50, ep_next: '5.5' }] }, '2026-27');
+  assert.equal(p.epNextTenths, 55);
+  const [q] = playersOf({ elements: [{ id: 2, web_name: 'B', team: 1, element_type: 3, now_cost: 50 }] }, '2026-27');
+  assert.equal(q.epNextTenths, null, 'missing ep_next stays unknown');
+});

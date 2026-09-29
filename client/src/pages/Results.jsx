@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Copy, Crown, FileSearch, Gavel, History, Info, RefreshCw, RotateCcw, ShieldAlert, ShieldCheck, Trophy } from 'lucide-react';
 import { endpoints } from '../lib/api.js';
-import { announcement, dateTime, explain, managerName, namesList, points, rankLabel, shortHash, validNote } from '../lib/format.js';
+import { announcement, dateTime, explain, managerName, namesList, points, rankLabel, shortHash, validNote, whatsappSummary } from '../lib/format.js';
 import { Avatar, Badge, Button, Card, Drawer, ErrorBox, Field, Notice, Skeleton, inputClass } from '../components/ui.jsx';
+import { Podium } from '../components/Podium.jsx';
+import { WhatsAppShare } from '../components/WhatsAppShare.jsx';
 
 // Results page (v0.2 §3–§4, §6; v0.3 §7): the decision up top, admin actions,
 // standings as tappable cards ("=" ranks, tie-break explanations,
@@ -15,6 +17,7 @@ export default function Results({ group, season, gw, isAdmin }) {
   const qc = useQueryClient();
   const key = ['result', group.id, season, gw];
   const result = useQuery({ queryKey: key, queryFn: () => endpoints.result(group.id, gw, season) });
+  const rivals = useQuery({ queryKey: ['rivals', group.id, season, gw], queryFn: () => endpoints.rivals(group.id, gw, season) });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [panel, setPanel] = useState(null); // 'override' | 'recompute'
   const [copied, setCopied] = useState(false);
@@ -24,6 +27,7 @@ export default function Results({ group, season, gw, isAdmin }) {
     qc.invalidateQueries({ queryKey: ['events', season] }),
     qc.invalidateQueries({ queryKey: ['ownership', group.id] }),
     qc.invalidateQueries({ queryKey: ['chips', group.id] }),
+    qc.invalidateQueries({ queryKey: ['rivals', group.id] }),
   ]);
   const sync = useMutation({ mutationFn: () => endpoints.sync(group.id, season, gw), onSuccess: refresh });
   const finalize = useMutation({ mutationFn: () => endpoints.finalize(group.id, gw, season), onSuccess: refresh });
@@ -94,6 +98,15 @@ export default function Results({ group, season, gw, isAdmin }) {
           {text && <p className="mt-3 rounded-xl bg-black/15 p-3 text-sm text-white/90" data-testid="announcement">{text}</p>}
         </div>
       </section>
+
+      {rivals.data?.rivals.podium.length > 0 && (
+        <Card title="Overall standings" subtitle={`FPL season totals after GW${gw}`}>
+          <Podium podium={rivals.data.rivals.podium} testId="podium" />
+          <div className="mt-4 border-t border-line pt-4">
+            <WhatsAppShare text={whatsappSummary({ groupName: group.name, season, result: r, rivals: rivals.data.rivals })} />
+          </div>
+        </Card>
+      )}
 
       {(r.warnings?.length > 0 || r.blockedBy?.length > 0) && (
         <div className="space-y-2">

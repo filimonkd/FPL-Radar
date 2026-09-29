@@ -371,6 +371,42 @@ The browser app for the APIs above, served by Express from the same origin in pr
 
 Season and gameweek live in the URL. The default season comes from the date (seasons start in July/August) and the default gameweek is FPL's current one.
 
+## Rivals, strategy and commissioner tools (Step 16)
+
+**`GET /api/groups/:id/gw/:gw/rivals?season=`** (admin or the group's viewer) is computed on read from synced data by the pure `server/src/analytics/rivals.js`. Nothing is stored and finalized results are untouched. The rules below are also returned in the response (`rules`).
+
+- **GW score:** the one the group's winner rule uses (net or gross after reconciliation). An unreconciled row is `null` and is skipped, never guessed; H3 stays unresolved.
+- **Overall standings:** FPL's reported season total.
+- **Unknown values:** returned as `null` and shown as "–", never 0.
+
+| Feature | Where | Rule |
+|---|---|---|
+| Leaderboard + podium | Results tab, **Boards** page (every group side by side) | Rank by FPL season total ("=" ties); podium = ranks 1–3; GW winner from the result (or the top GW score while not final) |
+| WhatsApp summary | Results tab, Boards | Emoji text from API facts only: winner(s), top 3, biggest hit, most-captained player, top bandwagon buy, form leader. Copy it or open WhatsApp prefilled; big ties shortened |
+| Point differentials | Rivals tab | This GW and overall, from your side ("+5" = you're ahead) |
+| Squad overlap | Rivals tab | Shared starters between your latest XI and theirs, "x/11"; their differentials listed |
+| Financial intel | Rivals tab | Bank and squad value from their GW row |
+| Captaincy spy | Rivals tab | Captain in their latest known squad (Triple Captain flagged) |
+| Closest rivals | Rivals tab | The managers directly above and below you overall, with the gap |
+| Form | Rivals tab | Average of the last 3 scored GWs |
+| Hit tracker | Rivals tab | Transfer-hit points this season |
+| Chip inventory | Rivals tab | Chips still available in the current window (from the chip rules; unknown if rules aren't synced) |
+| Head to head | Rivals tab | Your weekly wins, losses and draws against them, over GWs where both scores are known |
+| Threat level | Rivals tab | 🔥 HIGH / ⚠️ MEDIUM / 🧊 LOW, with the reasons shown. See the rule below the table |
+| Bandwagon | Strategy tab | Players bought this GW by group members, how many own them, and whether you do |
+| Expected points | Strategy tab | FPL `ep_next` summed over each latest known XI, captain counted twice; players without an estimate are reported, not zeroed |
+| Fixture difficulty | Strategy tab | Mean FPL difficulty (1–5) of the XI's fixtures in the next 3 GWs; lower is easier |
+
+**Threat level rule:**
+
+1. Form: +2 if their 3-GW average beats the baseline by 5 or more; +1 if it beats it by less.
+2. Chips: +1 for Triple Captain left, +1 for Bench Boost left, +1 if Free Hit or Wildcard is left.
+3. A total of 3 or more is HIGH, 2 is MEDIUM, otherwise LOW.
+
+The baseline is your form, or the group average if "me" isn't set.
+
+"Me" (group Settings) turns on the differentials, overlap, head-to-head and closest-rival views. Players are identified by FPL's own data: `ep_next` is stored on players (`epNextTenths`) from each bootstrap sync.
+
 ## Test
 
 ```bash

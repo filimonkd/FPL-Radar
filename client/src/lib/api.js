@@ -74,6 +74,7 @@ export const endpoints = {
   trace: (snapshotId) => api(`/result-snapshots/${snapshotId}/trace`),
   ownership: (id, gw, season, view) => api(`/groups/${id}/gw/${gw}/ownership?${q({ season, view })}`),
   transfers: (id, gw, season) => api(`/groups/${id}/gw/${gw}/transfers?${q({ season })}`),
+  rivals: (id, gw, season) => api(`/groups/${id}/gw/${gw}/rivals?${q({ season })}`),
   chips: (id, season, event) => api(`/groups/${id}/chips?${q({ season, event })}`),
   status: (season) => api(`/status?${q({ season })}`),
   run: (runId) => api(`/status/runs/${runId}`),

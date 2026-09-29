@@ -14,6 +14,7 @@ export function playerToDomain(doc, opts) {
     elementType: doc.elementType,
     priceTenths: doc.priceTenths,
     status: doc.status ?? null,
+    epNextTenths: doc.epNextTenths ?? null,
   }, doc, opts);
 }
 
@@ -27,5 +28,6 @@ export function playerToDocument(p) {
     elementType: p.elementType,
     priceTenths: p.priceTenths,
     status: p.status ?? null,
+    epNextTenths: p.epNextTenths ?? null,
   };
 }

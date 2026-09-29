@@ -36,6 +36,9 @@ const element = obj({
   team: z.int(),
   element_type: z.int(),
   now_cost: z.int(), // tenths of £m
+  // FPL's own expected points for the next GW, as a decimal string ("6.0");
+  // observed on every element. Optional so its absence never fails a sync.
+  ep_next: z.string().nullable().optional(),
 });
 
 const elementType = obj({

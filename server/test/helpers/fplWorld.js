@@ -70,7 +70,7 @@ export function createWorld({ seasonStartYear = 2026, entries = ENTRIES } = {}) 
       return {
         events: state.events,
         teams: [1, 2, 3, 4].map((id) => ({ id, name: `Club ${id}`, short_name: `C${id}` })),
-        elements: Array.from({ length: 30 }, (_, i) => ({ id: i + 1, web_name: `P${i + 1}`, team: (i % 4) + 1, element_type: (i % 4) + 1, now_cost: 45 + i })),
+        elements: Array.from({ length: 30 }, (_, i) => ({ id: i + 1, web_name: `P${i + 1}`, team: (i % 4) + 1, element_type: (i % 4) + 1, now_cost: 45 + i, ep_next: ((i % 5) + 1).toFixed(1) })),
         element_types: [1, 2, 3, 4].map((id) => ({ id, singular_name_short: ['GKP', 'DEF', 'MID', 'FWD'][id - 1] })),
         chips: state.chips,
       };

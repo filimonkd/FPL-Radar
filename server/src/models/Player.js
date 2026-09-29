@@ -13,6 +13,7 @@ const playerSchema = new Schema({
   elementType: intField({ required: true, min: 1, max: 4 }),
   priceTenths: intField({ required: true, min: 0 }), // FPL now_cost
   status: { type: String, default: null },
+  epNextTenths: intField({ default: null }), // FPL ep_next ×10 (expected points next GW)
   provenance: { type: provenanceSchema, required: true },
 }, { ...MODEL_OPTIONS, collection: 'players' });
 

@@ -1,6 +1,6 @@
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Activity, LayoutGrid, LogOut, Radar } from 'lucide-react';
+import { Activity, LayoutGrid, LogOut, Medal, Radar } from 'lucide-react';
 import { useSession } from './lib/session.jsx';
 import { endpoints, setShareToken } from './lib/api.js';
 import { Skeleton } from './components/ui.jsx';
@@ -13,6 +13,7 @@ import GroupLayout from './pages/GroupLayout.jsx';
 import SnapshotTrace from './pages/SnapshotTrace.jsx';
 import Status from './pages/Status.jsx';
 import RunDetail from './pages/RunDetail.jsx';
+import Leaderboards from './pages/Leaderboards.jsx';
 
 function useSignOut() {
   const session = useSession();
@@ -42,6 +43,7 @@ function TopBar() {
         {session.role !== 'anonymous' && (
           <nav className="flex items-center gap-1">
             {session.role === 'admin' && <NavLink to="/" end className={nav}><LayoutGrid size={16} />Groups</NavLink>}
+            {session.role === 'admin' && <NavLink to="/leaderboards" className={nav}><Medal size={16} />Boards</NavLink>}
             {session.role === 'admin' && <NavLink to="/status" className={nav}><Activity size={16} />Status</NavLink>}
             {session.role === 'viewer' && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Viewer</span>}
             <button type="button" onClick={signOut} className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/75 hover:text-white sm:inline-flex">
@@ -66,6 +68,7 @@ function BottomTabs() {
     <nav aria-label="Main" className="bottom-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur sm:hidden">
       <div className="mx-auto flex max-w-md">
         <NavLink to="/" end className={tab}><LayoutGrid size={22} />Groups</NavLink>
+        <NavLink to="/leaderboards" className={tab}><Medal size={22} />Boards</NavLink>
         <NavLink to="/status" className={tab}><Activity size={22} />Status</NavLink>
         <button type="button" onClick={signOut} className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-muted"><LogOut size={22} />Sign out</button>
       </div>
@@ -103,6 +106,7 @@ export default function App() {
             <Route path="/groups/:groupId" element={<Navigate to="results" replace />} />
             <Route path="/groups/:groupId/:tab" element={<RequireSignedIn><GroupLayout /></RequireSignedIn>} />
             <Route path="/snapshots/:snapshotId" element={<RequireSignedIn><SnapshotTrace /></RequireSignedIn>} />
+            <Route path="/leaderboards" element={<RequireAdmin><Leaderboards /></RequireAdmin>} />
             <Route path="/status" element={<RequireAdmin><Status /></RequireAdmin>} />
             <Route path="/status/runs/:runId" element={<RequireAdmin><RunDetail /></RequireAdmin>} />
             <Route path="*" element={<p className="py-10 text-center text-muted">Page not found. <Link className="font-semibold text-brand underline" to="/">Home</Link></p>} />

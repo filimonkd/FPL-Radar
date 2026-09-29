@@ -83,7 +83,16 @@ export const playersOf = (bootstrap, season) => [...bootstrap.elements].sort(byI
   elementType: p.element_type,
   priceTenths: p.now_cost,
   status: typeof p.status === 'string' ? p.status : null,
+  epNextTenths: tenthsOf(p.ep_next),
 }));
+
+/** FPL decimal strings ("6.0") → integer tenths; anything unparsable → null. */
+export function tenthsOf(value) {
+  if (typeof value === 'string' && value.trim() === '') return null;
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n * 10) : null;
+}
 
 /** bootstrap chips[] → { valid, chipRules?, problems } (v0.2 §8: whole set or nothing). */
 export function chipRulesOf(bootstrap) {
