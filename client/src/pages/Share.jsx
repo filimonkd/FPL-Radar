@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { endpoints, setShareToken, tokenFromHash, ApiError } from '../lib/api.js';
-import { Card, ErrorBox, Spinner } from '../components/ui.jsx';
+import { Card, ErrorBox, Skeleton } from '../components/ui.jsx';
 
 // /share#<token>: a viewer's entry point. The token stays in the URL fragment
 // (never sent to the server's logs), is kept in localStorage and sent as
@@ -30,5 +30,5 @@ export default function Share() {
       });
   }, [navigate, qc]);
 
-  return error ? <Card title="Share link"><ErrorBox error={error} title="Cannot open this link" /></Card> : <Spinner label="Opening the shared group…" />;
+  return error ? <Card title="Share link"><ErrorBox error={error} title="Cannot open this link" /></Card> : <Skeleton label="Opening the shared group…" />;
 }

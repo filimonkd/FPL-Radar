@@ -111,7 +111,7 @@ test('results: blocked before sync with reasons, then sync and finalize a finish
   await page.getByTestId('result-status').getByText('FINAL').waitFor();
   assert.match(await page.getByTestId('winners').innerText(), /Winner: Team 103 \(Manager 103\) — 61 pts/);
   assert.equal(await page.getByTestId('announcement').innerText(), `Rivals · GW${GW} ${SEASON}: Team 103 (Manager 103) wins with 61 pts.`);
-  const ranks = await page.getByTestId('standings').locator('tbody tr td:first-child').allInnerTexts();
+  const ranks = await page.getByTestId('standings').locator('[data-testid^="rank-"]').allInnerTexts();
   assert.deepEqual(ranks.map((r) => r.trim()), ['1', '2', '3']);
   assert.ok(await page.getByTestId('row-101').getByText('me').isVisible(), '"me" is highlighted');
   assert.ok(await noHorizontalScroll(page), 'results fit a phone screen');
@@ -138,11 +138,11 @@ test('ownership, captaincy, transfers and chips render for the GW', async () => 
   assert.match(await page.getByTestId('denominators').innerText(), /Out of 2 rivals/);
   await page.getByTestId('view-picked').click();
   await page.getByText('Picked: the team as submitted at the deadline.').waitFor();
-  assert.ok((await page.getByTestId('captaincy-table').locator('tbody tr').count()) === 3);
+  assert.equal(await page.getByTestId('captaincy-table').locator('[data-testid^="cap-"]').count(), 3);
   await page.getByTestId('transfer-totals').waitFor();
   await page.getByRole('link', { name: 'Chips' }).click();
   await page.getByTestId('chip-source').getByText('Rules from FPL').waitFor();
-  assert.equal(await page.getByTestId('chip-states').locator('tbody tr').count(), 3);
+  assert.equal(await page.getByTestId('chip-states').locator('[data-testid^="chip-row-"]').count(), 3);
   assert.ok(await noHorizontalScroll(page));
 });
 

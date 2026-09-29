@@ -97,6 +97,13 @@ export function managerName(standings, entryId) {
   return r ? `${r.teamName} (${r.playerName})` : `#${entryId}`;
 }
 
+/** Names for a list of entry ids; long lists are shortened to the first `max` plus "+N more". */
+export function namesList(standings, ids, max = 3) {
+  if (!ids?.length) return '—';
+  const names = ids.map((id) => managerName(standings, id));
+  return names.length > max + 1 ? `${names.slice(0, max).join(', ')} +${names.length - max} more` : names.join(', ');
+}
+
 /**
  * The announcement text for a decided gameweek (v0.2 §17 step 8 "announcement copy").
  * Only FINAL / OVERRIDDEN results are announced; anything else returns null.

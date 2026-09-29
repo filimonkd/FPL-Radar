@@ -64,3 +64,11 @@ test('form inputs: notes 3–280 chars, entry ID parsing, tie-break chain ends w
   assert.deepEqual(tieBreakChain(['HIGHER_SEASON_TOTAL', 'SHARED', 'FEWER_TRANSFER_COST']), ['HIGHER_SEASON_TOTAL', 'FEWER_TRANSFER_COST', 'SHARED']);
   assert.deepEqual(tieBreakChain([]), ['SHARED']);
 });
+
+test('long name lists are shortened, short ones kept whole', async () => {
+  const { namesList } = await import('../../src/lib/format.js');
+  assert.equal(namesList(standings, []), '—');
+  assert.equal(namesList(standings, [103, 101]), 'Team C (Carol), Team A (Ann)');
+  assert.equal(namesList(standings, [103, 101, 102, 104]), 'Team C (Carol), Team A (Ann), Team B (Bob), Team D (Dan)', 'max + 1 is still shown whole');
+  assert.equal(namesList([...standings, { entryId: 105, teamName: 'Team E', playerName: 'Eve' }], [103, 101, 102, 104, 105]), 'Team C (Carol), Team A (Ann), Team B (Bob) +2 more');
+});
