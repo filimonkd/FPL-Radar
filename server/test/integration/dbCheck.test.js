@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import mongoose from 'mongoose';
 import { startTestDb } from '../helpers/memoryReplSet.js';
@@ -17,6 +17,10 @@ import { createWorld, worldClient, tickingClock, GW } from '../helpers/fplWorld.
 
 const SEASON = '2026-27';
 const SCRIPT = fileURLToPath(new URL('../../scripts/dbCheck.js', import.meta.url));
+// Asynchronous: spawnSync would block the event loop that drains the in-memory mongod's log pipe.
+const runCli = (env) => new Promise((resolve) => {
+  execFile(process.execPath, [SCRIPT], { env, encoding: 'utf8', timeout: 60_000 }, (err, stdout, stderr) => resolve({ status: err ? (typeof err.code === 'number' ? err.code : null) : 0, stdout, stderr }));
+});
 let t;
 let group;
 let pointer;
@@ -166,18 +170,18 @@ test('I8 invalid stored picks', async () => {
 
 test('npm run db:check: JSON report, exit 0 when clean and 1 on any ERROR', async () => {
   const env = { ...process.env, MONGODB_URI: t.uri, MONGODB_DB: t.dbName };
-  let out = spawnSync(process.execPath, [SCRIPT], { env, encoding: 'utf8' });
+  let out = await runCli(env);
   assert.equal(out.status, 0, out.stderr);
   assert.equal(JSON.parse(out.stdout).ok, true);
   const doc = await raw('managerGameweeks').findOne({ hasPicks: true });
   await raw('managerGameweeks').updateOne({ _id: doc._id }, { $set: { 'picks.1.isCaptain': true } });
   try {
-    out = spawnSync(process.execPath, [SCRIPT], { env, encoding: 'utf8' });
+    out = await runCli(env);
     assert.equal(out.status, 1);
     assert.deepEqual(JSON.parse(out.stdout).counts, { error: 1, info: 0 });
   } finally {
     await raw('managerGameweeks').updateOne({ _id: doc._id }, { $set: { 'picks.1.isCaptain': doc.picks[1].isCaptain } });
   }
-  out = spawnSync(process.execPath, [SCRIPT], { env: { ...process.env, MONGODB_URI: '', MONGODB_DB: '' }, encoding: 'utf8' });
+  out = await runCli({ ...process.env, MONGODB_URI: '', MONGODB_DB: '' });
   assert.equal(out.status, 1, 'refuses to run without a target');
 });
