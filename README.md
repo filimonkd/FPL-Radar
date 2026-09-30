@@ -477,6 +477,7 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
 ## Visual design (Step 22)
 
 - **The look.** A native sports-app style: a deep teal-black ground with a green glow at the top, top-lit rounded cards (`.card-raised`, 28 px corners, a tab label on the Results card), pill chips and buttons, and a floating pill tab bar on phones where the open section widens into a teal pill.
+- **Phone navigation.** Inside a group, a floating **Results · Rivals · News · Tools** bar; the open section widens into a teal pill with its name. Tools (Strategy, Finder, Transfers, Planner, Ownership, Chips, Settings) show as chips under the header while one is open, and the Tools button reopens the last one used. Admin pages (Groups, Boards, Status, Sign out) sit in the header's ⋮ menu, a bottom sheet. Wider screens keep every tab in the chip row and admin pages in the header.
 - **Theme.** One dark theme for everyone. The tokens are in `client/src/index.css`; the `dark:` variants always apply because `<html class="dark">` is set.
 - **Type.** Outfit for headings and numbers, Manrope for body text, self-hosted with `@fontsource-variable`, so no third-party font requests and the CSP stays `'self'`.
 - Nothing about behaviour, data or routes changed.

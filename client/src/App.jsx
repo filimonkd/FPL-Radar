@@ -1,9 +1,10 @@
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Activity, LayoutGrid, LogOut, Medal, Radar } from 'lucide-react';
+import { useState } from 'react';
+import { Activity, EllipsisVertical, LayoutGrid, LogOut, Medal, Radar } from 'lucide-react';
 import { useSession } from './lib/session.jsx';
 import { endpoints, setShareToken } from './lib/api.js';
-import { Skeleton } from './components/ui.jsx';
+import { Drawer, Skeleton } from './components/ui.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import Login from './pages/Login.jsx';
 import Share from './pages/Share.jsx';
@@ -27,13 +28,18 @@ function useSignOut() {
   };
 }
 
-// Top bar: the brand over the page's glow, and (on wider screens) navigation.
-// On phones admin navigation is the floating tab bar, within thumb reach.
+// Top bar: the brand over the page's glow. On wider screens admin navigation
+// sits here as pills; on phones it moves into the ⋮ menu (a bottom sheet), and
+// the floating tab bar inside a group is the group's own navigation.
 function TopBar() {
   const session = useSession();
   const signOut = useSignOut();
+  const [menu, setMenu] = useState(false);
   const nav = ({ isActive }) => `hidden min-h-11 items-center sm:inline-flex gap-2 rounded-full px-4 text-sm font-bold transition ${isActive ? 'bg-brand text-brand-ink' : 'bg-white/6 text-ink/80 ring-1 ring-inset ring-white/10 hover:text-ink'}`;
+  const item = ({ isActive }) => `flex min-h-13 items-center gap-3 rounded-2xl px-4 font-bold ${isActive ? 'bg-brand text-brand-ink' : 'bg-white/5 text-ink ring-1 ring-inset ring-white/8'}`;
+  // The sheet renders outside <header>: its backdrop-filter would trap a fixed child.
   return (
+    <>
     <header className="sticky top-0 z-30 bg-[#082520]/35 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-4">
         <Link to="/" className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight">
@@ -52,30 +58,22 @@ function TopBar() {
             {session.role === 'viewer' && (
               <button type="button" onClick={signOut} aria-label="Leave" className="grid h-11 w-11 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 sm:hidden"><LogOut size={18} /></button>
             )}
+            {session.role === 'admin' && (
+              <button type="button" onClick={() => setMenu(true)} aria-label="Menu" data-testid="menu" className="grid h-12 w-12 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 sm:hidden"><EllipsisVertical size={20} /></button>
+            )}
           </nav>
         )}
       </div>
     </header>
-  );
-}
-
-// Floating pill tab bar (phones, admin): the open section widens into a teal
-// pill with its name; the others are round icon buttons.
-function BottomTabs() {
-  const session = useSession();
-  const signOut = useSignOut();
-  if (session.role !== 'admin') return null;
-  const tab = ({ isActive }) => `flex h-13 items-center justify-center gap-2 rounded-full text-xs font-extrabold tracking-wide transition ${isActive ? 'bg-brand px-5 text-brand-ink' : 'w-13 bg-white/7 text-ink'}`;
-  const label = (text) => ({ isActive }) => (isActive ? <span className="uppercase">{text}</span> : <span className="sr-only">{text}</span>);
-  return (
-    <nav aria-label="Main" className="float-safe fixed left-1/2 z-30 -translate-x-1/2 sm:hidden">
-      <div className="flex items-center gap-1.5 rounded-full bg-[#122420]/95 p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur">
-        <NavLink to="/" end className={tab}>{(s) => <><LayoutGrid size={20} aria-hidden="true" />{label('Groups')(s)}</>}</NavLink>
-        <NavLink to="/leaderboards" className={tab}>{(s) => <><Medal size={20} aria-hidden="true" />{label('Boards')(s)}</>}</NavLink>
-        <NavLink to="/status" className={tab}>{(s) => <><Activity size={20} aria-hidden="true" />{label('Status')(s)}</>}</NavLink>
-        <button type="button" onClick={signOut} aria-label="Sign out" className="grid h-13 w-13 place-items-center rounded-full bg-white/7 text-ink"><LogOut size={20} aria-hidden="true" /></button>
-      </div>
-    </nav>
+      <Drawer open={menu} title="Menu" onClose={() => setMenu(false)} testId="menu-sheet">
+        <div className="space-y-2">
+          <NavLink to="/" end className={item} onClick={() => setMenu(false)}><LayoutGrid size={20} aria-hidden="true" />Groups</NavLink>
+          <NavLink to="/leaderboards" className={item} onClick={() => setMenu(false)}><Medal size={20} aria-hidden="true" />Boards</NavLink>
+          <NavLink to="/status" className={item} onClick={() => setMenu(false)}><Activity size={20} aria-hidden="true" />Status</NavLink>
+          <button type="button" onClick={() => { setMenu(false); signOut(); }} className="flex min-h-13 w-full items-center gap-3 rounded-2xl bg-white/5 px-4 font-bold text-ink ring-1 ring-inset ring-white/8"><LogOut size={20} aria-hidden="true" />Sign out</button>
+        </div>
+      </Drawer>
+    </>
   );
 }
 
@@ -116,7 +114,6 @@ export default function App() {
           </Routes>
         </ErrorBoundary>
       </main>
-      <BottomTabs />
     </div>
   );
 }

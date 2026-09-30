@@ -163,8 +163,10 @@ test('commissioner tools: podium and WhatsApp summary on Results and Leaderboard
   assert.match(text, /👑 GW winner: Team 103 \(Manager 103\) — 61 pts/);
   assert.match(text, /🥇 .* pts/);
   assert.equal(await page.getByTestId('whatsapp').getByRole('link', { name: 'Open WhatsApp' }).getAttribute('href'), `https://wa.me/?text=${encodeURIComponent(text)}`);
-  await page.getByRole('link', { name: 'Boards' }).click();
+  await page.getByTestId('menu').click(); // phones: admin pages live in the ⋮ menu
+  await page.getByTestId('menu-sheet').getByRole('link', { name: 'Boards' }).click();
   await page.getByTestId('board-rivals').waitFor();
+  assert.equal(await page.getByTestId('menu-sheet').count(), 0, 'the menu closes on navigation');
   assert.match(await page.getByTestId('gw-winner-rivals').innerText(), /GW5 winner[\s\S]*Team 103/i);
   assert.equal(await page.getByTestId('podium-rivals').locator('[data-testid^="podium-rivals-"]').count(), 3);
   assert.ok(await noHorizontalScroll(page));
@@ -180,8 +182,15 @@ test('spy vs me, rival radar and strategy lab render from the rivals API', async
   assert.equal(await page.getByTestId('radar').locator('li').count(), 2, 'two rivals besides me');
   await page.getByTestId('pick-102').click();
   assert.match(await page.getByTestId('spy').innerText(), /Team 102/);
+  // Phones: the floating bar is Results · Rivals · News · Tools; tools are chips.
+  const bar = page.getByTestId('group-bar');
+  assert.equal(await bar.getByRole('link').count(), 4);
+  assert.match(await bar.getByRole('link', { name: 'Rivals' }).innerText(), /RIVALS/, 'the open section shows its name');
+  assert.equal(await page.getByRole('link', { name: 'Strategy' }).count(), 0, 'no tool chips outside Tools');
+  await bar.getByRole('link', { name: 'Tools' }).click();
   await page.getByRole('link', { name: 'Strategy' }).click();
   await page.getByTestId('xpts').waitFor();
+  assert.match(await bar.getByRole('link', { name: 'Tools' }).innerText(), /TOOLS/);
   assert.equal(await page.getByTestId('xpts').locator('li').count(), 3);
   assert.equal(await page.getByTestId('fdr').locator('li').count(), 3);
   assert.ok(await noHorizontalScroll(page));
@@ -295,7 +304,8 @@ test('override with a note appends to the history; the chain stays valid', async
 
 test('status page and a run\'s request log', async () => {
   const page = adminPage;
-  await page.getByRole('link', { name: 'Status' }).click();
+  await page.getByTestId('menu').click();
+  await page.getByTestId('menu-sheet').getByRole('link', { name: 'Status' }).click();
   await page.getByTestId('semantics').waitFor();
   assert.match(await page.getByTestId('storage').innerText(), /of 512\.0 MB/);
   await page.getByTestId('runs').getByRole('link', { name: 'Details' }).first().click();
