@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.jsx';
 import { SessionProvider } from './lib/session.jsx';
+import '@fontsource-variable/manrope/wght.css';
+import '@fontsource-variable/outfit/wght.css';
 import './index.css';
 
 const queryClient = new QueryClient({

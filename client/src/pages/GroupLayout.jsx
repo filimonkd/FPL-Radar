@@ -20,6 +20,12 @@ import Planner from './Planner.jsx';
 const TABS = [['results', 'Results', Trophy], ['rivals', 'Rivals', Swords], ['news', 'News', Newspaper], ['strategy', 'Strategy', Brain], ['finder', 'Finder', Search], ['transfers', 'Transfers', ArrowLeftRight], ['planner', 'Planner', CalendarRange], ['ownership', 'Ownership', PieChart], ['chips', 'Chips', Layers], ['settings', 'Settings', SettingsIcon]];
 const STATE_LABEL = { UPCOMING: 'upcoming', LIVE: 'live', MATCHES_FINISHED: 'matches finished', FPL_PROCESSING: 'processing', DATA_CHECKED: 'final data' };
 
+/** Two letters for a group's avatar: the first two words' initials, or a one-word name's first two letters. */
+const groupInitials = (name) => {
+  const words = name.match(/[A-Za-z0-9]+/g) ?? ['?'];
+  return (words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2)).toUpperCase();
+};
+
 /** Season and gameweek live in the URL (?season=&gw=) so every view is linkable. */
 export function useGwParams(events) {
   const [params, setParams] = useSearchParams();
@@ -62,41 +68,51 @@ export default function GroupLayout() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="flex items-center gap-2 truncate text-xl font-extrabold tracking-tight" data-testid="group-name">
-              <span className="truncate">{g.name}</span>{!g.isActive && <Badge tone="neutral">Archived</Badge>}
-            </h1>
-            <p className="mt-0.5 text-sm text-muted">{g.members.length} members · {g.winnerRule === 'NET_POINTS' ? 'net points' : 'gross points'}</p>
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[conic-gradient(var(--brand),#1b8f78,var(--brand))] p-[3px]">
+              <span className="grid h-full w-full place-items-center rounded-full bg-surface font-display text-base font-extrabold ring-2 ring-bg">{groupInitials(g.name)}</span>
+            </span>
+            <div className="min-w-0">
+              <h1 className="flex items-center gap-2 truncate text-2xl font-bold" data-testid="group-name">
+                <span className="truncate">{g.name}</span>{!g.isActive && <Badge tone="neutral">Archived</Badge>}
+              </h1>
+              <p className="text-sm font-semibold text-muted">{g.members.length} members · {g.winnerRule === 'NET_POINTS' ? 'net points' : 'gross points'}</p>
+            </div>
           </div>
-          <select aria-label="Season" className="min-h-9 rounded-lg bg-surface-2 px-2 text-sm font-semibold ring-1 ring-line" value={season} onChange={(e) => set({ season: e.target.value })}>
+          <select aria-label="Season" className="min-h-11 shrink-0 rounded-full bg-white/7 px-3 text-sm font-bold ring-1 ring-white/10" value={season} onChange={(e) => set({ season: e.target.value })}>
             {seasons.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         {tab !== 'settings' && (
-          <div className="mt-3 flex items-center gap-2">
-            <button type="button" aria-label="Previous gameweek" disabled={!gw || gw <= 1} onClick={() => set({ gw: gw - 1 })} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface-2 ring-1 ring-line disabled:opacity-30"><ChevronLeft size={20} /></button>
+          <div className="mt-4 flex items-center gap-2">
+            <button type="button" aria-label="Previous gameweek" disabled={!gw || gw <= 1} onClick={() => set({ gw: gw - 1 })} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 disabled:opacity-30"><ChevronLeft size={20} /></button>
             <label className="relative flex-1">
               <span className="sr-only">Gameweek</span>
-              <select aria-label="Gameweek" data-testid="gw-select" className="h-11 w-full appearance-none rounded-xl bg-surface-2 px-3 text-center text-base font-bold ring-1 ring-line" value={gw ?? ''} onChange={(e) => set({ gw: e.target.value })}>
+              <select aria-label="Gameweek" data-testid="gw-select" className="h-12 w-full appearance-none rounded-full bg-brand/15 px-4 text-center font-display text-lg font-bold ring-1 ring-brand/45" value={gw ?? ''} onChange={(e) => set({ gw: e.target.value })}>
                 {gw == null && <option value="">Choose a gameweek</option>}
                 {Array.from({ length: 38 }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>Gameweek {n}{stateOf.get(n) === 'DATA_CHECKED' ? ' ✓' : stateOf.get(n) === 'LIVE' ? ' · live' : ''}</option>
                 ))}
               </select>
             </label>
-            <button type="button" aria-label="Next gameweek" disabled={!gw || gw >= 38} onClick={() => set({ gw: gw + 1 })} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface-2 ring-1 ring-line disabled:opacity-30"><ChevronRight size={20} /></button>
+            <button type="button" aria-label="Next gameweek" disabled={!gw || gw >= 38} onClick={() => set({ gw: gw + 1 })} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 disabled:opacity-30"><ChevronRight size={20} /></button>
           </div>
         )}
-        {tab !== 'settings' && state && <p className="mt-2 text-center text-xs font-medium text-muted">{state === 'DATA_CHECKED' ? 'FPL has confirmed the final data' : `FPL status: ${STATE_LABEL[state] ?? state}`}</p>}
+        {tab !== 'settings' && state && (
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold text-muted">
+            <span className={`h-2 w-2 rounded-full ${state === 'DATA_CHECKED' ? 'bg-brand' : state === 'LIVE' ? 'bg-[#ff8a7a]' : 'bg-muted'}`} aria-hidden="true" />
+            {state === 'DATA_CHECKED' ? 'FPL has confirmed the final data' : `FPL status: ${STATE_LABEL[state] ?? state}`}
+          </p>
+        )}
       </div>
 
-      <nav className="sticky top-14 z-20 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur">
-        <div ref={tabsRef} className="flex gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-sm ring-1 ring-line [scrollbar-width:none]">
+      <nav className="sticky top-16 z-20 -mx-4 bg-[#071c18]/60 px-4 py-2 backdrop-blur-xl">
+        <div ref={tabsRef} className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
           {tabs.map(([k, label, Icon]) => (
-            <NavLink key={k} to={`/groups/${groupId}/${k}${query}`} className={({ isActive }) => `flex min-h-10 shrink-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-sm font-semibold transition ${isActive ? 'bg-brand text-brand-ink shadow-sm' : 'text-muted hover:text-ink'}`}>
-              <Icon size={16} aria-hidden="true" className="hidden sm:block" />{label}
+            <NavLink key={k} to={`/groups/${groupId}/${k}${query}`} className={({ isActive }) => `flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 text-sm font-bold ring-1 ring-inset transition ${isActive ? 'bg-brand/16 text-ink ring-brand/50' : 'bg-white/5 text-muted ring-white/8 hover:text-ink'}`}>
+              <Icon size={16} aria-hidden="true" />{label}
             </NavLink>
           ))}
         </div>

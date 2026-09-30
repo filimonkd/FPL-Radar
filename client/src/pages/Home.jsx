@@ -40,7 +40,7 @@ export default function Home() {
           {active.map((g) => (
             <li key={g.id}>
               <Link to={`/groups/${g.id}/results`} className="group flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-brand/40 hover:shadow-md">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand dark:text-violet-300"><Trophy size={20} aria-hidden="true" /></span>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Trophy size={20} aria-hidden="true" /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-bold">{g.name}</span>
                   <span className="mt-1 flex flex-wrap gap-1.5">

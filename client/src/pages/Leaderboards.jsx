@@ -27,7 +27,7 @@ function GroupBoard({ group, season, gw }) {
       <ErrorBox error={rivals.error} />
       {r && (
         <div className="space-y-4" data-testid={`board-${group.slug}`}>
-          <div className="rounded-xl bg-surface-2 p-3 ring-1 ring-line" data-testid={`gw-winner-${group.slug}`}>
+          <div className="rounded-2xl bg-[#f5b84a]/8 p-3 ring-1 ring-[#f5b84a]/25" data-testid={`gw-winner-${group.slug}`}>
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted">GW{gw} {decided ? 'winner' : 'leader (not final)'}</p>
             {res?.winners?.length ? (
               <p className="mt-1 flex items-center gap-2 font-bold"><Crown size={16} className="shrink-0 text-amber-500" /><span className="min-w-0">{namesList(res.standings, res.winners)}</span>{res.winningScore != null && <span className="ml-auto font-black tabular">{res.winningScore}</span>}</p>
@@ -65,9 +65,9 @@ export default function Leaderboards() {
         </div>
         {gw != null && (
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Previous gameweek" disabled={gw <= 1} onClick={() => setGw(gw - 1)} className="grid h-10 w-10 place-items-center rounded-xl bg-surface ring-1 ring-line disabled:opacity-30"><ChevronLeft size={18} /></button>
+            <button type="button" aria-label="Previous gameweek" disabled={gw <= 1} onClick={() => setGw(gw - 1)} className="grid h-11 w-11 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 disabled:opacity-30"><ChevronLeft size={18} /></button>
             <span className="min-w-20 text-center font-bold" data-testid="boards-gw">GW{gw}</span>
-            <button type="button" aria-label="Next gameweek" disabled={gw >= 38} onClick={() => setGw(gw + 1)} className="grid h-10 w-10 place-items-center rounded-xl bg-surface ring-1 ring-line disabled:opacity-30"><ChevronRight size={18} /></button>
+            <button type="button" aria-label="Next gameweek" disabled={gw >= 38} onClick={() => setGw(gw + 1)} className="grid h-11 w-11 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 disabled:opacity-30"><ChevronRight size={18} /></button>
           </div>
         )}
       </div>

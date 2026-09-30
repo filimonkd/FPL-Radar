@@ -1,43 +1,35 @@
 @import "tailwindcss";
 
-/* Design tokens (Step 15): semantic colours that switch with the OS theme.
+/* Design tokens (Step 22, "native sports app" look): a deep teal-black ground
+   with a green glow at the top, raised teal cards, pill controls and a teal
+   accent. One dark theme for everyone, so `dark:` variants always apply (the
+   custom variant below keys them off the `dark` class on <html>).
    Components use bg-surface / text-ink / text-muted / border-line / bg-brand …
-   instead of raw palette colours, so light and dark stay consistent. */
+   instead of raw palette colours. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --bg: #f4f2f8;
-  --surface: #ffffff;
-  --surface-2: #f7f5fb;
-  --ink: #1b1530;
-  --muted: #6b6582;
-  --line: #e6e1ef;
-  --brand: #4c1d95;
-  --brand-ink: #ffffff;
-  --brand-soft: #efe9fb;
-  --accent: #10b981;
-  --focus: #7c3aed;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f0c1a;
-    --surface: #1a1628;
-    --surface-2: #221d33;
-    --ink: #f1eefa;
-    --muted: #a39cba;
-    --line: #2f2944;
-    --brand: #8b5cf6;
-    --brand-ink: #ffffff;
-    --brand-soft: #2a2145;
-    --accent: #34d399;
-    --focus: #a78bfa;
-    color-scheme: dark;
-  }
+  --bg: #050d0b;
+  --surface: #10221e;
+  --surface-2: #17302a;
+  --raised: #14302a;
+  --ink: #eaf4f1;
+  --muted: #9db5ae;
+  --line: #22403a;
+  --brand: #3ccfb4;
+  --brand-ink: #04201a;
+  --brand-soft: #123c33;
+  --accent: #3ccfb4;
+  --focus: #7fe6d2;
+  --glow: #1f6b58;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-raised: var(--raised);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
@@ -46,18 +38,30 @@
   --color-brand-soft: var(--brand-soft);
   --color-accent: var(--accent);
   --color-focus: var(--focus);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit Variable", "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-html { -webkit-text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--ink); -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+body {
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  background:
+    radial-gradient(130% 520px at 50% -140px, var(--glow) 0%, #0d3029 42%, transparent 78%) no-repeat,
+    var(--bg);
+  min-height: 100dvh;
+}
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .tabular { font-variant-numeric: tabular-nums; }
-/* Room for the phone tab bar and the iOS home indicator. */
-.pb-safe { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+/* A raised card: the soft top-lit panel every section sits on. */
+.card-raised { background: linear-gradient(180deg, var(--raised) 0%, #0c1c19 100%); }
+/* Room for the floating tab bar and the iOS home indicator. */
+.pb-safe { padding-bottom: calc(7rem + env(safe-area-inset-bottom)); }
 @media (min-width: 640px) { .pb-safe { padding-bottom: 2rem; } }
 .bottom-safe { padding-bottom: env(safe-area-inset-bottom); }
+.float-safe { bottom: calc(1rem + env(safe-area-inset-bottom)); }
 @keyframes shimmer { from { background-position: -200px 0; } to { background-position: 200px 0; } }
-.skeleton { background: linear-gradient(90deg, var(--surface-2) 0%, var(--line) 50%, var(--surface-2) 100%); background-size: 400px 100%; animation: shimmer 1.2s linear infinite; }
+.skeleton { background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%); background-size: 400px 100%; animation: shimmer 1.2s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }

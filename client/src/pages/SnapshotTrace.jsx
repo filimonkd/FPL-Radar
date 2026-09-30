@@ -40,7 +40,7 @@ export default function SnapshotTrace() {
         </dl>
       </Card>
       {sources.map((src) => (
-        <Card key={src.syncRunId} title={<span className="flex items-center gap-2">Source run <Badge status={src.status}>{src.status}</Badge></span>} subtitle={`Started ${dateTime(src.startedAt)} · ${src.requestHashes.length} FPL responses${src.run?.expireAt ? '' : ' · retained permanently'}`} actions={role === 'admin' && <Link className="text-sm font-semibold text-brand underline dark:text-violet-300" to={`/status/runs/${src.syncRunId}`}>Open run</Link>}>
+        <Card key={src.syncRunId} title={<span className="flex items-center gap-2">Source run <Badge status={src.status}>{src.status}</Badge></span>} subtitle={`Started ${dateTime(src.startedAt)} · ${src.requestHashes.length} FPL responses${src.run?.expireAt ? '' : ' · retained permanently'}`} actions={role === 'admin' && <Link className="text-sm font-semibold text-brand underline" to={`/status/runs/${src.syncRunId}`}>Open run</Link>}>
           <ul className="divide-y divide-line text-sm">
             {src.requests.map((q, i) => (
               <li key={i} className="flex items-center gap-2 py-1.5">

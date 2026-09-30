@@ -83,7 +83,7 @@ export default function Status() {
         </ul>
       </Card>
 
-      <Card title="FPL smoke test" actions={s.smoke?.available && <button type="button" className="text-sm font-semibold text-brand underline dark:text-violet-300" onClick={() => setShowChecks((v) => !v)}>{showChecks ? 'Hide checks' : 'Show checks'}</button>}>
+      <Card title="FPL smoke test" actions={s.smoke?.available && <button type="button" className="text-sm font-semibold text-brand underline" onClick={() => setShowChecks((v) => !v)}>{showChecks ? 'Hide checks' : 'Show checks'}</button>}>
         {!s.smoke?.available ? <p className="text-sm text-muted">No committed smoke report for {season}.</p> : (
           <>
             <p className="text-sm">{s.smoke.exit}</p>

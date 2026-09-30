@@ -21,7 +21,7 @@ export default function News({ group, season, gw, isAdmin }) {
   return (
     <div className="space-y-4">
       <Card
-        title={<span className="flex items-center gap-2"><Newspaper size={18} className="text-brand dark:text-violet-300" />Injury &amp; news</span>}
+        title={<span className="flex items-center gap-2"><Newspaper size={18} className="text-brand" />Injury &amp; news</span>}
         subtitle={<span data-testid="news-asof">FPL data as of {dateTime(n.asOf)}{refresh.isFetching && <> · <RefreshCw size={12} className="inline animate-spin" aria-hidden="true" /> checking FPL…</>}</span>}
         actions={hasMe ? <Segmented label="Whose players" value={filter} onChange={setFilter} options={[['all', 'All'], ['mine', 'Mine'], ['rivals', 'Rivals']]} testIdPrefix="news-filter" /> : null}
         padded={false}

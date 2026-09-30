@@ -61,7 +61,7 @@ export default function GroupNew() {
             {[['LEAGUE_STANDINGS', 'From an FPL classic league', Trophy], ['MANUAL', 'Manual entry IDs', Hash]].map(([v, l, Icon]) => (
               <label key={v} className={`flex cursor-pointer flex-col gap-2 rounded-xl p-3 text-sm font-semibold ring-1 transition ${source === v ? 'bg-brand-soft ring-2 ring-brand' : 'ring-line hover:ring-brand/40'}`}>
                 <input type="radio" name="source" className="sr-only" checked={source === v} onChange={() => { setSource(v); setCandidates([]); }} />
-                <Icon size={20} className="text-brand dark:text-violet-300" aria-hidden="true" />{l}
+                <Icon size={20} className="text-brand" aria-hidden="true" />{l}
               </label>
             ))}
           </div>

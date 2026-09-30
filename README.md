@@ -474,6 +474,13 @@ Groundwork for the news tracker, differential finder, transfer simulator and wil
 - **Best XI** picks the formation minimums by expected points, then the best of the rest.
 - **Drafts are saved in this browser only** (`localStorage`, per group and season), with several drafts, Wildcard or Free Hit mode, and delete. No server changes: nothing is stored or deleted server-side.
 
+## Visual design (Step 22)
+
+- **The look.** A native sports-app style: a deep teal-black ground with a green glow at the top, top-lit rounded cards (`.card-raised`, 28 px corners, a tab label on the Results card), pill chips and buttons, and a floating pill tab bar on phones where the open section widens into a teal pill.
+- **Theme.** One dark theme for everyone. The tokens are in `client/src/index.css`; the `dark:` variants always apply because `<html class="dark">` is set.
+- **Type.** Outfit for headings and numbers, Manrope for body text, self-hosted with `@fontsource-variable`, so no third-party font requests and the CSP stays `'self'`.
+- Nothing about behaviour, data or routes changed.
+
 ## Test
 
 ```bash

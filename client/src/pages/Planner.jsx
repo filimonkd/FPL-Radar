@@ -116,7 +116,7 @@ export default function Planner({ group, season }) {
 
   return (
     <div className="space-y-4">
-      <Card title={<span className="flex items-center gap-2"><CalendarRange size={18} className="text-brand dark:text-violet-300" />Wildcard / Free Hit planner</span>} subtitle={`For GW${nextGw} · drafts are saved in this browser only`}>
+      <Card title={<span className="flex items-center gap-2"><CalendarRange size={18} className="text-brand" />Wildcard / Free Hit planner</span>} subtitle={`For GW${nextGw} · drafts are saved in this browser only`}>
         {!draft ? (
           <EmptyState title="Start a draft" action={newButtons}>
             {hasPlan ? 'Start from your latest synced squad (budget = its estimated selling value + bank), or from scratch.' : 'Set “me” in Settings and sync to start from your own squad, or start from scratch with £100.0m.'}
@@ -188,7 +188,7 @@ export default function Planner({ group, season }) {
                     })}
                     {Array.from({ length: empty }, (_, i) => (
                       <li key={`empty-${i}`}>
-                        <button type="button" onClick={() => setPicking(pos)} data-testid={`add-${pos}`} className="flex min-h-12 w-full items-center gap-2 px-4 text-sm font-semibold text-brand hover:bg-surface-2 sm:px-5 dark:text-violet-300"><Plus size={16} aria-hidden="true" />Add {pos}</button>
+                        <button type="button" onClick={() => setPicking(pos)} data-testid={`add-${pos}`} className="flex min-h-12 w-full items-center gap-2 px-4 text-sm font-semibold text-brand hover:bg-surface-2 sm:px-5"><Plus size={16} aria-hidden="true" />Add {pos}</button>
                       </li>
                     ))}
                   </ul>

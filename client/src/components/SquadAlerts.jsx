@@ -17,7 +17,7 @@ export function SquadAlerts({ group, season, gw }) {
     <section className="rounded-2xl bg-amber-500/10 p-3 ring-1 ring-amber-500/30 sm:p-4" data-testid="squad-alerts">
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-2 text-sm font-bold text-amber-900 dark:text-amber-200"><ShieldAlert size={16} aria-hidden="true" />Your squad: {mine.length} alert{mine.length === 1 ? '' : 's'}</p>
-        <Link to={`/groups/${group.id}/news?season=${season}&gw=${gw}`} className="text-sm font-semibold text-brand dark:text-violet-300">All news</Link>
+        <Link to={`/groups/${group.id}/news?season=${season}&gw=${gw}`} className="text-sm font-semibold text-brand">All news</Link>
       </div>
       <ul className="mt-2 space-y-1.5">
         {shown.map((x) => (

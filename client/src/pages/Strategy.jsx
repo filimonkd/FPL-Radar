@@ -19,12 +19,12 @@ export default function Strategy({ group, season, gw }) {
 
   return (
     <div className="space-y-4">
-      <Card title={<span className="flex items-center gap-2"><Rocket size={18} className="text-brand dark:text-violet-300" />Bandwagon</span>} subtitle={`Players your group bought in GW${r.event}`} padded={false}>
+      <Card title={<span className="flex items-center gap-2"><Rocket size={18} className="text-brand" />Bandwagon</span>} subtitle={`Players your group bought in GW${r.event}`} padded={false}>
         {bandwagon.length === 0 ? <p className="px-4 pb-4 text-sm text-muted sm:px-5">No transfers in this gameweek yet.</p> : (
           <ul className="divide-y divide-line" data-testid="bandwagon">
             {bandwagon.map((b) => (
               <li key={b.elementId} className="flex items-center gap-3 px-4 py-3 sm:px-5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-lg font-black text-brand tabular dark:text-violet-300">{b.count}</span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-lg font-black text-brand tabular">{b.count}</span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold">{b.webName ?? `#${b.elementId}`}</p>
                   <p className="truncate text-xs text-muted">bought by {b.boughtBy.map(nameOf).join(', ')} · owned by {b.ownedBy}/{b.of}</p>
@@ -37,7 +37,7 @@ export default function Strategy({ group, season, gw }) {
         )}
       </Card>
 
-      <Card title={<span className="flex items-center gap-2"><Sparkles size={18} className="text-brand dark:text-violet-300" />Expected points</span>} subtitle={`Next GW, from each latest known XI (FPL ep_next, captain ×2)`} padded={false}>
+      <Card title={<span className="flex items-center gap-2"><Sparkles size={18} className="text-brand" />Expected points</span>} subtitle={`Next GW, from each latest known XI (FPL ep_next, captain ×2)`} padded={false}>
         {xpts.every((m) => m.xPts == null) ? <div className="px-4 pb-4 sm:px-5"><EmptyState title="No expected points yet">Needs a synced squad and FPL’s estimate (ep_next) for its players; re-sync after FPL publishes them.</EmptyState></div> : (
           <ol className="divide-y divide-line" data-testid="xpts">
             {xpts.map((m, i) => (
@@ -56,7 +56,7 @@ export default function Strategy({ group, season, gw }) {
         )}
       </Card>
 
-      <Card title={<span className="flex items-center gap-2"><CalendarDays size={18} className="text-brand dark:text-violet-300" />Fixture difficulty</span>} subtitle={fdrWindow.length ? `GW${fdrWindow[0]}–${fdrWindow.at(-1)}, starting XI · lower is easier` : 'Season over'} padded={false}>
+      <Card title={<span className="flex items-center gap-2"><CalendarDays size={18} className="text-brand" />Fixture difficulty</span>} subtitle={fdrWindow.length ? `GW${fdrWindow[0]}–${fdrWindow.at(-1)}, starting XI · lower is easier` : 'Season over'} padded={false}>
         <ol className="divide-y divide-line" data-testid="fdr">
           {fdr.map((m) => (
             <li key={m.entryId} className={`flex items-center gap-3 px-4 py-3 sm:px-5 ${m.isMe ? 'bg-brand-soft/60' : ''}`}>

@@ -37,7 +37,7 @@ export default function Finder({ group, season, gw }) {
 
   return (
     <div className="space-y-4">
-      <Card title={<span className="flex items-center gap-2"><Search size={18} className="text-brand dark:text-violet-300" />Differential &amp; value finder</span>} subtitle="Find players your rivals don’t have">
+      <Card title={<span className="flex items-center gap-2"><Search size={18} className="text-brand" />Differential &amp; value finder</span>} subtitle="Find players your rivals don’t have">
         <div className="space-y-3">
           <div className="overflow-x-auto [scrollbar-width:none]">
             <Segmented label="Position" value={filters.position} onChange={(v) => set('position', v)} options={[['', 'All'], ['GKP', 'GKP'], ['DEF', 'DEF'], ['MID', 'MID'], ['FWD', 'FWD']]} testIdPrefix="finder-pos" />
@@ -58,7 +58,7 @@ export default function Finder({ group, season, gw }) {
               <input type="checkbox" data-testid="finder-fit" className="h-5 w-5 accent-[var(--brand)]" checked={filters.fit === 'true'} onChange={(e) => set('fit', e.target.checked ? 'true' : '')} />
               <span>Fit only<span className="block text-xs font-normal text-muted">Hide doubts &amp; injuries</span></span>
             </label>
-            {active > 0 && <button type="button" onClick={reset} className="min-h-11 whitespace-nowrap px-2 text-sm font-semibold text-brand dark:text-violet-300">Clear filters ({active})</button>}
+            {active > 0 && <button type="button" onClick={reset} className="min-h-11 whitespace-nowrap px-2 text-sm font-semibold text-brand">Clear filters ({active})</button>}
           </div>
         </div>
       </Card>

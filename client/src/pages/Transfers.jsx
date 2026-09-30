@@ -91,7 +91,7 @@ export default function Transfers({ group, season }) {
     const { code } = plan.error;
     if (plan.error.status === 422) {
       return (
-        <EmptyState icon={ArrowLeftRight} title="Transfer simulator" action={code === 'ME_NOT_SET' ? <Link className="font-semibold text-brand dark:text-violet-300" to={`/groups/${group.id}/settings?season=${season}`}>Open Settings</Link> : null}>
+        <EmptyState icon={ArrowLeftRight} title="Transfer simulator" action={code === 'ME_NOT_SET' ? <Link className="font-semibold text-brand" to={`/groups/${group.id}/settings?season=${season}`}>Open Settings</Link> : null}>
           {code === 'ME_NOT_SET' ? 'Set “me” in this group’s Settings to simulate transfers for your team.' : code === 'NO_SQUAD' ? 'Sync the current gameweek first so your squad is known.' : 'No current gameweek is known for this season yet.'}
         </EmptyState>
       );
@@ -105,7 +105,7 @@ export default function Transfers({ group, season }) {
   return (
     <div className="space-y-4">
       <Card
-        title={<span className="flex items-center gap-2"><ArrowLeftRight size={18} className="text-brand dark:text-violet-300" />Transfer simulator</span>}
+        title={<span className="flex items-center gap-2"><ArrowLeftRight size={18} className="text-brand" />Transfer simulator</span>}
         subtitle={<>Your GW{p.squadEvent} squad · bank {money(p.bankTenths)} · for GW{p.event + 1}</>}
         actions={<Segmented label="Transfer cost" value={hit ? 'hit' : 'free'} onChange={(v) => set({ hit: v === 'free' ? 'false' : null })} options={[['hit', '−4 hit'], ['free', 'Free']]} testIdPrefix="sim-cost" />}
         padded={false}
@@ -115,7 +115,7 @@ export default function Transfers({ group, season }) {
           {out ? (
             <div className="flex items-center gap-2 pr-4 sm:pr-5">
               <div className="min-w-0 flex-1"><PlayerLine p={out} selected testId={`sell-${out.elementId}`} onClick={() => set({ out: null, in: null })} right={<><span className="block font-bold">{sellText(out)}</span><span className="block text-xs text-muted">now {money(out.priceTenths)}</span></>} /></div>
-              <button type="button" data-testid="sim-change-sell" onClick={() => set({ out: null, in: null })} className="min-h-11 shrink-0 px-2 text-sm font-semibold text-brand dark:text-violet-300">Change</button>
+              <button type="button" data-testid="sim-change-sell" onClick={() => set({ out: null, in: null })} className="min-h-11 shrink-0 px-2 text-sm font-semibold text-brand">Change</button>
             </div>
           ) : byPos.map(([pos, list]) => (
             <div key={pos}>
@@ -133,7 +133,7 @@ export default function Transfers({ group, season }) {
       </Card>
 
       {out && (
-        <Card title={<span className="flex items-center gap-2"><ArrowDown size={18} className="text-brand dark:text-violet-300" />2 · Buy a {out.position}</span>} subtitle="Sorted by FPL’s expected points for next GW" padded={false}>
+        <Card title={<span className="flex items-center gap-2"><ArrowDown size={18} className="text-brand" />2 · Buy a {out.position}</span>} subtitle="Sorted by FPL’s expected points for next GW" padded={false}>
           <div className="px-4 pb-3 sm:px-5">
             <label className="relative block">
               <span className="sr-only">Search players</span>

@@ -27,30 +27,30 @@ function useSignOut() {
   };
 }
 
-// Top bar: brand + (on wider screens) navigation. On phones navigation moves
-// to the bottom tab bar, within thumb reach.
+// Top bar: the brand over the page's glow, and (on wider screens) navigation.
+// On phones admin navigation is the floating tab bar, within thumb reach.
 function TopBar() {
   const session = useSession();
   const signOut = useSignOut();
-  const nav = ({ isActive }) => `hidden min-h-10 items-center sm:inline-flex gap-2 rounded-xl px-3 text-sm font-semibold transition ${isActive ? 'bg-white/15 text-white' : 'text-white/75 hover:text-white'}`;
+  const nav = ({ isActive }) => `hidden min-h-11 items-center sm:inline-flex gap-2 rounded-full px-4 text-sm font-bold transition ${isActive ? 'bg-brand text-brand-ink' : 'bg-white/6 text-ink/80 ring-1 ring-inset ring-white/10 hover:text-ink'}`;
   return (
-    <header className="sticky top-0 z-30 bg-gradient-to-r from-[#2e1065] via-[#4c1d95] to-[#6d28d9] text-white shadow-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
-        <Link to="/" className="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/15"><Radar size={18} aria-hidden="true" /></span>
+    <header className="sticky top-0 z-30 bg-[#082520]/35 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-4">
+        <Link to="/" className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand to-[#1b8f78] text-brand-ink"><Radar size={20} aria-hidden="true" /></span>
           FPL Radar
         </Link>
         {session.role !== 'anonymous' && (
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-2">
             {session.role === 'admin' && <NavLink to="/" end className={nav}><LayoutGrid size={16} />Groups</NavLink>}
             {session.role === 'admin' && <NavLink to="/leaderboards" className={nav}><Medal size={16} />Boards</NavLink>}
             {session.role === 'admin' && <NavLink to="/status" className={nav}><Activity size={16} />Status</NavLink>}
-            {session.role === 'viewer' && <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Viewer</span>}
-            <button type="button" onClick={signOut} className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/75 hover:text-white sm:inline-flex">
+            {session.role === 'viewer' && <span className="rounded-full bg-white/8 px-3 py-1.5 text-xs font-bold ring-1 ring-white/10">Viewer</span>}
+            <button type="button" onClick={signOut} className="hidden min-h-11 items-center gap-2 rounded-full bg-white/6 px-4 text-sm font-bold text-ink/80 ring-1 ring-inset ring-white/10 hover:text-ink sm:inline-flex">
               <LogOut size={16} />{session.role === 'admin' ? 'Sign out' : 'Leave'}
             </button>
             {session.role === 'viewer' && (
-              <button type="button" onClick={signOut} aria-label="Leave" className="grid h-10 w-10 place-items-center rounded-xl text-white/80 sm:hidden"><LogOut size={18} /></button>
+              <button type="button" onClick={signOut} aria-label="Leave" className="grid h-11 w-11 place-items-center rounded-full bg-white/7 ring-1 ring-white/10 sm:hidden"><LogOut size={18} /></button>
             )}
           </nav>
         )}
@@ -59,18 +59,21 @@ function TopBar() {
   );
 }
 
+// Floating pill tab bar (phones, admin): the open section widens into a teal
+// pill with its name; the others are round icon buttons.
 function BottomTabs() {
   const session = useSession();
   const signOut = useSignOut();
   if (session.role !== 'admin') return null;
-  const tab = ({ isActive }) => `flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold ${isActive ? 'text-brand dark:text-violet-300' : 'text-muted'}`;
+  const tab = ({ isActive }) => `flex h-13 items-center justify-center gap-2 rounded-full text-xs font-extrabold tracking-wide transition ${isActive ? 'bg-brand px-5 text-brand-ink' : 'w-13 bg-white/7 text-ink'}`;
+  const label = (text) => ({ isActive }) => (isActive ? <span className="uppercase">{text}</span> : <span className="sr-only">{text}</span>);
   return (
-    <nav aria-label="Main" className="bottom-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur sm:hidden">
-      <div className="mx-auto flex max-w-md">
-        <NavLink to="/" end className={tab}><LayoutGrid size={22} />Groups</NavLink>
-        <NavLink to="/leaderboards" className={tab}><Medal size={22} />Boards</NavLink>
-        <NavLink to="/status" className={tab}><Activity size={22} />Status</NavLink>
-        <button type="button" onClick={signOut} className="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-semibold text-muted"><LogOut size={22} />Sign out</button>
+    <nav aria-label="Main" className="float-safe fixed left-1/2 z-30 -translate-x-1/2 sm:hidden">
+      <div className="flex items-center gap-1.5 rounded-full bg-[#122420]/95 p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur">
+        <NavLink to="/" end className={tab}>{(s) => <><LayoutGrid size={20} aria-hidden="true" />{label('Groups')(s)}</>}</NavLink>
+        <NavLink to="/leaderboards" className={tab}>{(s) => <><Medal size={20} aria-hidden="true" />{label('Boards')(s)}</>}</NavLink>
+        <NavLink to="/status" className={tab}>{(s) => <><Activity size={20} aria-hidden="true" />{label('Status')(s)}</>}</NavLink>
+        <button type="button" onClick={signOut} aria-label="Sign out" className="grid h-13 w-13 place-items-center rounded-full bg-white/7 text-ink"><LogOut size={20} aria-hidden="true" /></button>
       </div>
     </nav>
   );
@@ -94,7 +97,7 @@ function RequireSignedIn({ children }) {
 export default function App() {
   const location = useLocation();
   return (
-    <div className="min-h-dvh bg-bg font-sans text-ink antialiased">
+    <div className="min-h-dvh font-sans text-ink antialiased">
       <TopBar />
       <main className="pb-safe mx-auto max-w-5xl px-4 pt-4 sm:pt-6">
         <ErrorBoundary resetKey={location.pathname}>

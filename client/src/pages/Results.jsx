@@ -51,34 +51,36 @@ export default function Results({ group, season, gw, isAdmin }) {
     <div className="space-y-4">
       <SquadAlerts group={group} season={season} gw={gw} />
       {/* The decision */}
-      <section className={`overflow-hidden rounded-2xl shadow-sm ring-1 ${decided ? 'bg-gradient-to-br from-[#4c1d95] to-[#7c3aed] text-white ring-transparent' : 'bg-surface ring-line'}`}>
-        <div className="p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${decided ? 'bg-white/20 text-white' : ''}`} data-testid="result-status">
-                {decided ? r.status : <Badge status={r.status}>{r.status}</Badge>}
-              </span>
-              <span className={`text-sm font-semibold ${decided ? 'text-white/80' : 'text-muted'}`}>Gameweek {r.event}</span>
-            </div>
-            <Button variant={decided ? 'subtle' : 'secondary'} size="sm" icon={History} onClick={() => setHistoryOpen(true)} data-testid="open-history" className={decided ? 'bg-white/15! text-white! hover:bg-white/25!' : ''}>History</Button>
+      <section className={`card-raised relative overflow-hidden rounded-[28px] ring-1 ${decided ? 'ring-brand/35' : 'ring-white/7'}`}>
+        <div className="flex justify-center">
+          <div className="flex items-center gap-2 rounded-b-2xl bg-white/7 px-4 pt-1.5 pb-2 text-sm font-bold text-[#cfe3dd]">
+            <span className={`inline-flex items-center rounded-full text-xs font-extrabold tracking-wide ${decided ? 'text-brand' : ''}`} data-testid="result-status">
+              {decided ? r.status : <Badge status={r.status}>{r.status}</Badge>}
+            </span>
+            <span>· Gameweek {r.event}</span>
+          </div>
+        </div>
+        <div className="px-4 pt-3 pb-4 sm:px-5 sm:pb-5">
+          <div className="flex justify-end">
+            <Button variant="secondary" size="sm" icon={History} onClick={() => setHistoryOpen(true)} data-testid="open-history">History</Button>
           </div>
 
           {winnerRows.length > 0 ? (
             <div className="mt-4" data-testid="winners">
-              <p className={`text-xs font-bold uppercase tracking-wider ${decided ? 'text-white/70' : 'text-muted'}`}>{decided ? `Winner${shared ? 's' : ''}` : `Leading${shared ? ' (tied)' : ''}`}{shared && ' · shared'}</p>
+              <p className={`text-xs font-extrabold uppercase tracking-wider ${decided ? 'text-[#f5b84a]' : 'text-muted'}`}>{decided ? `Winner${shared ? 's' : ''}` : `Leading${shared ? ' (tied)' : ''}`}{shared && ' · shared'}</p>
               <ul className="mt-2 space-y-2">
                 {winnerRows.slice(0, winnerRows.length > 4 ? 3 : 4).map((w) => (
                   <li key={w.entryId} className="flex items-center gap-3">
-                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${decided ? 'bg-amber-300 text-amber-900' : 'bg-brand-soft text-brand'}`}><Crown size={20} aria-hidden="true" /></span>
+                    <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-full ${decided ? 'bg-[#f5b84a] text-[#3a2600] shadow-[0_0_0_4px_rgba(245,184,74,0.18)]' : 'bg-brand/15 text-brand'}`}><Crown size={24} aria-hidden="true" /></span>
                     <span className="min-w-0">
-                      <span className="block truncate text-lg font-extrabold">{w.teamName}</span>
-                      <span className={`block truncate text-sm ${decided ? 'text-white/75' : 'text-muted'}`}>{w.playerName}</span>
+                      <span className="block truncate font-display text-xl font-bold">{w.teamName}</span>
+                      <span className="block truncate text-sm font-semibold text-muted">{w.playerName}</span>
                     </span>
-                    {r.winningScore != null && <span className="ml-auto text-3xl font-black tabular">{r.winningScore}<span className="ml-0.5 text-sm font-semibold opacity-70">pts</span></span>}
+                    {r.winningScore != null && <span className="ml-auto font-display text-4xl font-extrabold tabular">{r.winningScore}<span className="ml-1 text-sm font-semibold text-muted">pts</span></span>}
                   </li>
                 ))}
               </ul>
-              {winnerRows.length > 4 && <p className={`mt-2 text-sm font-semibold ${decided ? 'text-white/80' : 'text-muted'}`}>+{winnerRows.length - 3} more share the win — see standings</p>}
+              {winnerRows.length > 4 && <p className="mt-2 text-sm font-semibold text-muted">+{winnerRows.length - 3} more share the win — see standings</p>}
               <p className="sr-only">{decided ? 'Winner' : 'Leading'}{shared ? 's' : ''}: {r.winners.map((id) => managerName(r.standings, id)).join(' · ')}{r.winningScore != null ? ` — ${r.winningScore} pts` : ''}</p>
             </div>
           ) : (
@@ -86,19 +88,22 @@ export default function Results({ group, season, gw, isAdmin }) {
           )}
 
           {r.status === 'OVERRIDDEN' && r.computedWinners && (
-            <p className="mt-3 text-sm text-white/80">Declared by the admin. The rules computed: {r.computedWinners.map((id) => managerName(r.standings, id)).join(', ') || 'no winner'}.</p>
+            <p className="mt-3 text-sm text-muted">Declared by the admin. The rules computed: {r.computedWinners.map((id) => managerName(r.standings, id)).join(', ') || 'no winner'}.</p>
           )}
-          {r.tieBreakApplied && <p className={`mt-2 text-sm ${decided ? 'text-white/80' : 'text-muted'}`}>Tie decided by: {explain(r.tieBreakApplied)}</p>}
+          {r.tieBreakApplied && <p className="mt-2 text-sm text-muted">Tie decided by: {explain(r.tieBreakApplied)}</p>}
 
           {decided && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {text && <Button size="sm" variant="subtle" icon={copied ? Check : Copy} onClick={copy} data-testid="copy-announcement" className="bg-white! text-[#4c1d95]!">{copied ? 'Copied' : 'Copy announcement'}</Button>}
-              {r.currentSnapshotId && (
-                <Link className="inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-white/90 ring-1 ring-white/30 hover:bg-white/10" to={`/snapshots/${r.currentSnapshotId}`} data-testid="trace-link"><FileSearch size={16} aria-hidden="true" />Trace this result</Link>
-              )}
-            </div>
+            <>
+              <div className="mx-4 mt-4 h-0.5 bg-gradient-to-r from-transparent via-brand to-transparent opacity-60" aria-hidden="true" />
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {text && <Button size="sm" icon={copied ? Check : Copy} onClick={copy} data-testid="copy-announcement">{copied ? 'Copied' : 'Copy announcement'}</Button>}
+                {r.currentSnapshotId && (
+                  <Link className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-white/7 px-4 text-sm font-bold text-ink ring-1 ring-inset ring-white/10 hover:bg-white/12" to={`/snapshots/${r.currentSnapshotId}`} data-testid="trace-link"><FileSearch size={16} aria-hidden="true" />Trace this result</Link>
+                )}
+              </div>
+            </>
           )}
-          {text && <p className="mt-3 rounded-xl bg-black/15 p-3 text-sm text-white/90" data-testid="announcement">{text}</p>}
+          {text && <p className="mt-3 rounded-2xl bg-white/5 p-3 text-sm text-ink/90 ring-1 ring-white/7" data-testid="announcement">{text}</p>}
         </div>
       </section>
 
@@ -180,9 +185,9 @@ function Standings({ result }) {
       {rows.map((s) => {
         const ok = s.reconciliationStatus?.startsWith('RECONCILED');
         return (
-          <li key={s.entryId} className={`px-4 py-3 sm:px-5 ${s.isMe ? 'bg-brand-soft/60' : ''}`} data-testid={`row-${s.entryId}`}>
+          <li key={s.entryId} className={`px-4 py-3 sm:px-5 ${s.isMe ? 'bg-gradient-to-r from-brand/15 to-transparent' : ''}`} data-testid={`row-${s.entryId}`}>
             <div className="flex items-center gap-3">
-              <span className={`w-9 shrink-0 text-center text-lg font-black tabular ${s.isWinner ? 'text-amber-500' : 'text-muted'}`} data-testid={`rank-${s.entryId}`}>{rankLabel(s)}</span>
+              <span className={`w-9 shrink-0 text-center font-display text-lg font-extrabold tabular ${s.isWinner ? 'text-[#f5b84a]' : 'text-muted'}`} data-testid={`rank-${s.entryId}`}>{rankLabel(s)}</span>
               <Avatar name={s.teamName} id={s.entryId} />
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 truncate font-bold">
@@ -193,7 +198,7 @@ function Standings({ result }) {
                 <p className="truncate text-sm text-muted">{s.playerName}</p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-black tabular">{points(s.score)}</p>
+                <p className="inline-block rounded-full bg-white/7 px-3 py-0.5 font-display text-lg font-extrabold tabular">{points(s.score)}</p>
                 {s.transferCost ? <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">−{s.transferCost} hits</p> : null}
               </div>
             </div>
@@ -202,7 +207,7 @@ function Standings({ result }) {
                 {s.ineligibleReason ? <Badge tone="neutral">{explain(s.ineligibleReason)}</Badge>
                   : !ok && <Badge tone="bad" icon={ShieldAlert}>{explain(s.reconciliationStatus)}</Badge>}
                 {s.positionDecidedBy && (
-                  <button type="button" onClick={() => setExplainFor(explainFor === s.entryId ? null : s.entryId)} aria-label="Why this position" className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-semibold text-brand ring-1 ring-line dark:text-violet-300">
+                  <button type="button" onClick={() => setExplainFor(explainFor === s.entryId ? null : s.entryId)} aria-label="Why this position" className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-xs font-semibold text-brand ring-1 ring-line">
                     <Info size={12} />tie-break
                   </button>
                 )}
@@ -227,7 +232,7 @@ function OverridePanel({ group, season, gw, result, onDone }) {
       <p className="text-sm text-muted">Declare the winner(s) yourself. The rule-based standings stay recorded next to your decision.</p>
       <fieldset className="space-y-1.5">
         {eligible.map((s) => (
-          <label key={s.entryId} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 ring-1 transition ${winners.includes(s.entryId) ? 'bg-brand-soft ring-brand/40' : 'ring-line'}`}>
+          <label key={s.entryId} className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 ring-1 transition ${winners.includes(s.entryId) ? 'bg-brand/12 ring-brand/40' : 'ring-line'}`}>
             <input type="checkbox" className="h-4 w-4 accent-[var(--brand)]" checked={winners.includes(s.entryId)} onChange={() => toggle(s.entryId)} />
             <span className="text-sm font-medium">{s.teamName} ({s.playerName})</span>
           </label>
@@ -290,8 +295,8 @@ function HistoryDrawer({ open, onClose, group, season, gw, standings, isAdmin })
             {a.note && <p className="mt-1 rounded-lg bg-surface-2 px-3 py-2 text-sm italic">“{a.note}”</p>}
             <p className="mt-1 text-xs text-muted">{dateTime(a.createdAt)} · {a.actor} · hash {shortHash(a.hash)}</p>
             <p className="mt-1 flex flex-wrap gap-3 text-xs font-semibold">
-              <Link className="text-brand underline dark:text-violet-300" to={`/snapshots/${a.newSnapshotId}`}>Snapshot</Link>
-              {a.syncRunId && (isAdmin ? <Link className="text-brand underline dark:text-violet-300" to={`/status/runs/${a.syncRunId}`}>Sync run</Link> : <span className="text-muted">run {a.syncRunId.slice(-6)}</span>)}
+              <Link className="text-brand underline" to={`/snapshots/${a.newSnapshotId}`}>Snapshot</Link>
+              {a.syncRunId && (isAdmin ? <Link className="text-brand underline" to={`/status/runs/${a.syncRunId}`}>Sync run</Link> : <span className="text-muted">run {a.syncRunId.slice(-6)}</span>)}
             </p>
           </li>
         ))}
