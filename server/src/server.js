@@ -26,7 +26,9 @@ try {
 } catch (err) {
   console.error(
     `Cannot connect to MongoDB at ${redact(config.MONGODB_URI)}: ${redact(err.cause?.message ?? err.message)}\n` +
-      '  Is the database running? Start it with `npm run db:up` (Docker must be running), then check with `npm run db:ping`.',
+      (config.NODE_ENV === 'production'
+        ? '  Check that the Atlas Network Access list holds every Render Outbound IP range (docs/DEPLOYMENT.md §3), the cluster is not paused, and MONGODB_URI uses the app user.'
+        : '  Is the database running? Start it with `npm run db:up` (Docker must be running), then check with `npm run db:ping`.'),
   );
   process.exit(1);
 }
