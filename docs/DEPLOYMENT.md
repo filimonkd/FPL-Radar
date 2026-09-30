@@ -120,6 +120,12 @@ Follow §17.3 "Atlas":
    3. Check the Status page request log and storage gauge.
    4. Finalize one finished gameweek.
    5. Open the History drawer and confirm the chain badge is valid.
+   6. In Settings, set "me" for each group, then check the Steps 16–21 tabs:
+      - **Rivals / Strategy** and **Boards** load.
+      - **News** shows "FPL data as of" a time within the last few minutes; opening it as admin re-reads FPL at most every 5 minutes.
+      - **Finder**, **Transfers** (the sell list shows ≈ selling prices) and **Planner** ("From my squad") load.
+   - The first manual sync of a season also backfills points and minutes for every finished GW: one extra `/event/{gw}/live/` request per GW, once. It shows on the Status page as `stats.history`; a failure there is a warning, not a failed sync.
+   - Nothing new is needed in the environment for Steps 13–21: no new variables, secrets or collections beyond the boot migrations.
 5. **db:check against production** through a temporary access entry:
    ```bash
    atlas accessLists create --currentIp --deleteAfter "$(date -u -d '+1 hour' +%Y-%m-%dT%H:%M:%SZ)"
